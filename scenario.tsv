@@ -28,3 +28,4 @@ id	catCode	lv1	lv2	lv3	name	order
 27	CHARACTER_QUEST	年代記の管理者フィーナ	運命の物語		今日は洗濯日和	2
 28	CHARACTER_QUEST	年代記の管理者フィーナ	絆の物語		明日の海	3
 29	OTHER	年代記の塔			5階層突破	1
+30	MAIN_STORY_PART1	1章		再開	3	
