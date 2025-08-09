@@ -1,8 +1,8 @@
 id	catCode	lv1	lv2	lv3	name	order
-1	MAIN_STORY_PART1	1章		  フィーナとの出会い	1	
-2	MAIN_STORY_PART1	1章		  物語の始まり	2	
-3	MAIN_STORY_PART1	2章		  聖都へ	1	
-4	MAIN_STORY_PART2	1章		  冒険始動	1	
+1	MAIN_STORY_PART1	1章		      フィーナとの出会い	1	
+2	MAIN_STORY_PART1	1章		      物語の始まり	2	
+3	MAIN_STORY_PART1	2章		      聖都へ	1	
+4	MAIN_STORY_PART2	1章		      冒険始動	1	
 5	MAIN_STORY_PART3	ヘリオス篇	1章		王都の少年	1
 6	MAIN_STORY_PART3	ヘリオス篇	1章		聖王女	2
 7	MAIN_STORY_PART3	アリーチェ篇	1章		魔法学園普通科	1
@@ -29,5 +29,6 @@ id	catCode	lv1	lv2	lv3	name	order
 28	CHARACTER_QUEST	年代記の管理者フィーナ	絆の物語		明日の海	3
 29	OTHER	年代記の塔			5階層突破	1
 30	MAIN_STORY_PART1	1章		  物語の始まり２	3	
+
 
 
