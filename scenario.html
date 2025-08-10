@@ -338,12 +338,12 @@
             { scenarioId: 25, name: '謎の人物' },
         ];
 
-//        let nextScenarioId = Math.max(...scenarios.map(s => s.id)) + 1;
-//        let currentCharactersToRegister = [];
-
         // シナリオとキャラクターのデータを格納する配列
         let scenarios = [];
         let scenarioCharacters = [];
+
+        let nextScenarioId = Math.max(...scenarios.map(s => s.id)) + 1;
+        let currentCharactersToRegister = [];
 
         // --- ページング関連の状態変数 ---
         let currentPage = 1;
@@ -500,14 +500,14 @@
                 return;
             }
 
-            const charactersInScenario = scenarioCharacters.filter(char => char.scenarioId === scenarioId);
+            const charactersInScenario = scenarioCharacters.filter(char => Number(char.scenarioId) === scenarioId);
             const category = majorCategories.find(cat => cat.code === scenario.catCode);
             const path = [
                 category ? category.name : '',
                 scenario.lv1,
                 scenario.lv2,
                 scenario.lv3
-            ].filter(Boolean).join(' &gt; ');
+            ].filter(Boolean).join(' > ');
 
             detailScenarioName.textContent = scenario.name;
             detailScenarioPath.textContent = path;
@@ -578,54 +578,96 @@
                 return;
             }
 
+
             let baseMatchingScenarioIds = new Set();
             if (characterNames.length > 0) {
                 if (lastSearchMode === 'OR') {
                     characterNames.forEach(charNameQuery => {
                         scenarioCharacters
                             .filter(char => char.name.includes(charNameQuery))
-                            .forEach(char => baseMatchingScenarioIds.add(char.scenarioId));
+                            .forEach(char => {
+                                // シナリオIDを数値に変換してからSetに追加
+                                baseMatchingScenarioIds.add(Number(char.scenarioId));
+                            });
                     });
                 } else {
                     let andScenarioIds = scenarios.filter(scenario => {
                         const charactersInThisScenario = scenarioCharacters
-                            .filter(sc => sc.scenarioId === scenario.id)
-                            .map(sc => sc.name);
+                            .filter(sc => Number(sc.scenarioId) === scenario.id)
+                            .map(sc => sc.name.trim()); // trim()を適用
                         
-                        return characterNames.every(charNameQuery => 
-                            charactersInThisScenario.some(charInScenario => charInScenario.includes(charNameQuery))
-                        );
+                        // 入力されたキャラクター名をSetに変換
+                        const characterSet = new Set(characterNames.map(name => name.trim()));
+                        // シナリオの登場キャラクターをSetに変換
+                        const scenarioSet = new Set(charactersInThisScenario);
+
+                        // 検索されたすべてのキャラクターが、そのシナリオに登場しているかを確認
+                        // 以下のロジックがAND検索の鍵となる
+                        return [...characterSet].every(char => scenarioSet.has(char));
                     }).map(s => s.id);
+
                     andScenarioIds.forEach(id => baseMatchingScenarioIds.add(id));
                 }
             } else {
                 scenarios.forEach(s => baseMatchingScenarioIds.add(s.id));
             }
 
-            let currentFilteredScenarios = scenarios.filter(scenario => baseMatchingScenarioIds.has(scenario.id));
+            // キャラクターフィルタリングが完了した直後
+            console.log('--- キャラクターフィルタリング後 ---');
+            console.log('baseMatchingScenarioIds:', baseMatchingScenarioIds);
+            console.log('baseMatchingScenarioIdsの最初の要素の型:', typeof Array.from(baseMatchingScenarioIds)[0]);
+            console.log('scenarios配列の最初のシナリオID:', scenarios[0].id);
+            console.log('scenariosの最初のシナリオIDの型:', typeof scenarios[0].id);
+            // その後のフィルタリング処理
+            let currentFilteredScenarios = scenarios.filter(scenario => {
+                // フィルタリング処理のデバッグ
+                const scenarioId = Number(scenario.id); // 明示的に数値に変換
+                
+                // has()メソッドで比較
+                const hasMatch = baseMatchingScenarioIds.has(scenarioId);
+                
+                console.log(`- シナリオID: ${scenarioId}, baseMatchingScenarioIdsに含まれるか: ${hasMatch}`);
 
+                return hasMatch;
+            });
+            //let currentFilteredScenarios = scenarios.filter(scenario => baseMatchingScenarioIds.has(scenario.id));
+
+            // 修正後のNOT検索ブロック
             if (notCharacterNames.length > 0) {
                 currentFilteredScenarios = currentFilteredScenarios.filter(scenario => {
                     const charactersInThisScenario = scenarioCharacters
-                        .filter(sc => sc.scenarioId === scenario.id)
-                        .map(sc => sc.name);
+                        .filter(sc => Number(sc.scenarioId) === scenario.id)
+                        .map(sc => sc.name.trim());
+                    
+                    let isNotMatch = false; // 変数をここで宣言
                     
                     if (lastNotSearchMode === 'NOT_OR') {
-                        return notCharacterNames.every(notCharNameQuery => 
-                            !charactersInThisScenario.some(charInScenario => charInScenario.includes(notCharNameQuery))
+                        // NOT OR検索: 入力されたすべてのキャラクターがシナリオに登場しない
+                        isNotMatch = notCharacterNames.every(notCharNameQuery =>
+                            !charactersInThisScenario.some(charInScenario => charInScenario === notCharNameQuery.trim())
                         );
                     } else {
-                        return !notCharacterNames.every(notCharNameQuery => 
-                            charactersInThisScenario.some(charInScenario => charInScenario.includes(notCharNameQuery))
+                        // NOT AND検索: 入力されたすべてのキャラクターがシナリオに登場するわけではない
+                        isNotMatch = !notCharacterNames.every(notCharNameQuery =>
+                            charactersInThisScenario.some(charInScenario => charInScenario === notCharNameQuery.trim())
                         );
                     }
+
+                    // デバッグログ
+                    console.log(`- シナリオID ${scenario.id}: NOT検索結果 -> ${isNotMatch}`);
+                    
+                    return isNotMatch;
                 });
             }
 
             if (lastSelectedCategoryCodes.length > 0) {
-                currentFilteredScenarios = currentFilteredScenarios.filter(scenario => lastSelectedCategoryCodes.includes(scenario.catCode));
+                currentFilteredScenarios = currentFilteredScenarios.filter(scenario => {
+                    // CSVデータのcatCodeから余分な空白を削除してから比較
+                    const trimmedCatCode = scenario.catCode ? scenario.catCode.trim() : null;
+                    return lastSelectedCategoryCodes.includes(trimmedCatCode);
+                });
             }
-            
+           
             currentFilteredScenarios.sort((a, b) => {
                 const catA = majorCategories.find(cat => cat.code === a.catCode)?.name || '';
                 const catB = majorCategories.find(cat => cat.code === b.catCode)?.name || '';
@@ -638,6 +680,9 @@
             lastFilteredScenarios = filteredScenarios;
             currentPage = 1;
             lastCurrentPage = 1;
+
+            console.log('最終的な検索結果:', filteredScenarios);
+
             displayPaginatedResults();
         }
 
@@ -661,7 +706,7 @@
                     scenario.lv1,
                     scenario.lv2,
                     scenario.lv3
-                ].filter(Boolean).join(' &gt; ');
+                ].filter(Boolean).join(' > ');
 
                 return `
                     <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm result-item">
