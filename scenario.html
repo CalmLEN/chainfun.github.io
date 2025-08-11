@@ -92,12 +92,11 @@
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
         
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">ゲームシナリオ検索・登録</h1>
-            <p class="mt-2 text-gray-500">キャラクター名とシナリオ分類で、登場するシナリオを検索します。新しいシナリオの登録も可能です。</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">ゲームシナリオ検索</h1>
+            <p class="mt-2 text-gray-500">キャラクター名とシナリオ分類で、登場するシナリオを検索します。</p>
         </header>
 
         <main>
-            <!-- Search and Results Container -->
             <div id="main-search-view">
                 <div id="search-container" class="bg-white p-6 rounded-lg shadow-md mb-8">
                     <form id="search-form">
@@ -105,6 +104,12 @@
                             <label for="character-name-input" class="block mb-2 text-lg font-semibold text-gray-700">キャラクター名</label>
                             <input type="text" id="character-name-input" placeholder="例: フィーナ, 主人公" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             <p class="text-sm text-gray-500 mt-1">複数のキャラクター名はカンマ(,)、読点(、)、またはスペースで区切ってください。</p>
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="note-keywords-input" class="block mb-2 text-lg font-semibold text-gray-700">備考欄キーワード</label>
+                            <input type="text" id="note-keywords-input" placeholder="例: ボス戦, イベント限定" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                            <p class="text-sm text-gray-500 mt-1">備考欄に含まれるキーワードで検索します。入力された文字列全体で部分一致検索を行います。</p>
                         </div>
 
                         <div class="mb-6">
@@ -121,7 +126,6 @@
                             </div>
                         </div>
 
-                        <!-- NOT Search Option -->
                         <div class="mb-6">
                             <button type="button" id="toggle-not-search-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 text-sm">
                                 NOT検索オプションを切り替え
@@ -146,23 +150,18 @@
                         <div class="mb-6">
                             <h3 class="block mb-3 text-lg font-semibold text-gray-700">シナリオ分類で絞り込む</h3>
                                  
-                            <!-- 全選択/全解除ボタンをここに追加 -->
-                                <button type="button" id="toggle-all-checkboxes-btn" class="ml-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-1 px-3 rounded-md transition-transform transform hover:scale-105">
+                            <button type="button" id="toggle-all-checkboxes-btn" class="ml-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-1 px-3 rounded-md transition-transform transform hover:scale-105">
                                     全選択/全解除
                                 </button>
                             <div id="category-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                <!-- Checkboxes will be dynamically inserted here -->
-                            </div>
+                                </div>
                         </div>
 
                         <div class="text-center flex justify-center space-x-4">
                             <button type="submit" class="accent-color accent-color-hover text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
                                 検索する
                             </button>
-                            <button type="button" id="show-registration-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
-                                シナリオ登録
-                            </button>
-                        </div>
+                            </div>
                     </form>
                 </div>
 
@@ -179,15 +178,17 @@
                 </div>
             </div>
 
-            <!-- Character Detail Container -->
             <div id="character-detail-container" class="hidden bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">シナリオ詳細: <span id="detail-scenario-name"></span></h2>
                 <div id="detail-scenario-path" class="text-gray-600 mb-4"></div>
                 
                 <h3 class="text-xl font-semibold text-gray-700 mb-3">登場キャラクター</h3>
                 <ul id="detail-character-list" class="list-disc list-inside space-y-2 text-gray-700">
-                    <!-- Characters will be dynamically inserted here -->
-                </ul>
+                    </ul>
+
+                <h3 class="text-xl font-semibold text-gray-700 mt-6 mb-3">備考</h3>
+                <div id="detail-note" class="bg-gray-50 p-3 rounded-md border border-gray-200 text-gray-700">
+                    </div>
 
                 <div class="text-center mt-8">
                     <button id="back-to-search-btn" class="accent-color accent-color-hover text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
@@ -196,62 +197,7 @@
                 </div>
             </div>
 
-            <!-- Scenario Registration Container -->
-            <div id="scenario-registration-container" class="hidden bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">新規シナリオ登録</h2>
-                <form id="registration-form">
-                    <div class="form-input-group">
-                        <label for="reg-major-category">大項目</label>
-                        <select id="reg-major-category" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                            <!-- Options will be dynamically inserted here -->
-                        </select>
-                    </div>
-                    <div class="form-input-group" id="group-level1-classification">
-                        <label for="reg-level1-classification">第一分類レベル</label>
-                        <input type="text" id="reg-level1-classification" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                    </div>
-                    <div class="form-input-group" id="group-level2-classification">
-                        <label for="reg-level2-classification">第二分類レベル</label>
-                        <input type="text" id="reg-level2-classification" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                    </div>
-                    <div class="form-input-group" id="group-level3-classification">
-                        <label for="reg-level3-classification">第三分類レベル</label>
-                        <input type="text" id="reg-level3-classification" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                    </div>
-                    <div class="form-input-group">
-                        <label for="reg-scenario-name">シナリオ名 <span class="text-red-500">*</span></label>
-                        <input type="text" id="reg-scenario-name" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                    </div>
-                    <div class="form-input-group">
-                        <label for="reg-display-order">表示順序</label>
-                        <input type="number" id="reg-display-order" value="1" min="1" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                    </div>
-
-                    <h3 class="text-xl font-semibold text-gray-700 mb-3">登場キャラクターの追加</h3>
-                    <div class="character-add-input-group mb-4">
-                        <input type="text" id="reg-character-name" placeholder="キャラクター名を入力" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                        <button type="button" id="add-character-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105">
-                            追加
-                        </button>
-                        <button type="button" id="add-main-characters-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 text-sm whitespace-nowrap">
-                            主要キャラ一括追加
-                        </button>
-                    </div>
-                    <ul id="registered-character-list" class="bg-gray-50 p-3 rounded-md border border-gray-200 mb-6">
-                        <li class="text-gray-500 text-sm text-center py-2">追加されたキャラクターが表示されます。</li>
-                    </ul>
-
-                    <div class="text-center flex justify-center space-x-4">
-                        <button type="submit" class="accent-color accent-color-hover text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
-                            シナリオを登録
-                        </button>
-                        <button type="button" id="back-to-search-from-reg-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
-                            検索画面に戻る
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </main>
+            </main>
     </div>
 
     <script>
@@ -282,68 +228,34 @@
             { code: 'OTHER', name: 'その他', hasLv1: true, exLv1: null, hasLv2: true, exLv2: null, hasLv3: true, exLv3: null }
         ];
 
-        const _scenarios = [
-            { id: 1, catCode: 'MAIN_STORY_PART1', lv1: '1章', lv2: null, lv3: null, name: 'フィーナとの出会い', order: 1 },
-            { id: 2, catCode: 'MAIN_STORY_PART1', lv1: '1章', lv2: null, lv3: null, name: '物語の始まり', order: 2 },
-            { id: 3, catCode: 'MAIN_STORY_PART1', lv1: '2章', lv2: null, lv3: null, name: '聖都へ', order: 1 },
-            { id: 4, catCode: 'MAIN_STORY_PART2', lv1: '1章', lv2: null, lv3: null, name: '冒険始動', order: 1 },
-            { id: 5, catCode: 'MAIN_STORY_PART3', lv1: 'ヘリオス篇', lv2: '1章', lv3: null, name: '王都の少年', order: 1 },
-            { id: 6, catCode: 'MAIN_STORY_PART3', lv1: 'ヘリオス篇', lv2: '1章', lv3: null, name: '聖王女', order: 2 },
-            { id: 7, catCode: 'MAIN_STORY_PART3', lv1: 'アリーチェ篇', lv2: '1章', lv3: null, name: '魔法学園普通科', order: 1 },
-            { id: 8, catCode: 'MAIN_STORY_PART4', lv1: '幻獣の世界', lv2: null, lv3: null, name: 'その世界の理', order: 1 },
-            { id: 9, catCode: 'MAIN_STORY_PART4', lv1: '遊戯の世界', lv2: null, lv3: null, name: '夢の国へ', order: 1 },
-            { id: 10, catCode: 'MAIN_STORY_PART5', lv1: '賢愚の未来', lv2: null, lv3: null, name: '魔法使いの目覚め', order: 1 },
-            { id: 11, catCode: 'KIZUNA_NO_KISEKI', lv1: '罪の大陸篇', lv2: '第一話', lv3: null, name: 'この首を縛るモノ', order: 1 },
-            { id: 12, catCode: 'DENSHO_HEN', lv1: '伝承篇『ヨシツグ伝』', lv2: '第四話', lv3: null, name: '妖精の戦い', order: 1 },
-            { id: 13, catCode: 'GRAND_SAGA', lv1: 'グランドサーガ『聖都篇』', lv2: '第二話', lv3: null, name: '父の背中', order: 1 },
-            { id: 14, catCode: 'SECRET_QUEST', lv1: 'ヘリオス篇', lv2: '10章', lv3: null, name: 'ふたりの辿る道', order: 1 },
-            { id: 15, catCode: 'SIDE_STORY_PART4', lv1: 'フィーナ・レポート', lv2: null, lv3: null, name: 'フィーナ・レポート１', order: 1 },
-            { id: 16, catCode: 'EVENT_QUEST_ANOMALY', lv1: null, lv2: null, lv3: null, name: '新たなる力', order: 1 },
-            { id: 17, catCode: 'GAIDEN', lv1: '学園祭へようこそ', lv2: null, lv3: null, name: '学園祭へのお誘い', order: 1 },
-            { id: 18, catCode: 'EVENT_TOUHA', lv1: 'ケ者の国のアリー', lv2: null, lv3: null, name: 'プロローグ１', order: 1 },
-            { id: 19, catCode: 'EVENT_DAIKARYO', lv1: 'インバラフェスが始まる！', lv2: null, lv3: null, name: 'オープニング', order: 1 },
-            { id: 20, catCode: 'EVENT_KYOTEKI', lv1: '白き愛のチョコ襲来', lv2: null, lv3: null, name: '白き愛は暴走中１', order: 1 },
-            { id: 21, catCode: 'CHAIN_STORY', lv1: '賞金争奪戦', lv2: null, lv3: null, name: 'マンハンター', order: 1 },
-            { id: 22, catCode: 'EVENT_QUEST', lv1: 'これからの迷宮山脈', lv2: null, lv3: null, name: 'これからの迷宮山脈', order: 1 },
-            { id: 23, catCode: 'COLLAB_QUEST', lv1: 'ペルソナ５', lv2: null, lv3: null, name: 'プロローグ', order: 1 },
-            { id: 24, catCode: 'COLLAB_GAIDEN', lv1: 'レムレス島', lv2: null, lv3: null, name: '開拓者の島', order: 1 },
-            { id: 25, catCode: 'FREE_QUEST', lv1: '断章', lv2: null, lv3: null, name: 'フィーナの日記', order: 1 },
-            { id: 26, catCode: 'CHARACTER_QUEST', lv1: '年代記の管理者フィーナ', lv2: '出会い', lv3: null, name: 'フィーナ', order: 1 },
-            { id: 27, catCode: 'CHARACTER_QUEST', lv1: '年代記の管理者フィーナ', lv2: '運命の物語', lv3: null, name: '今日は洗濯日和', order: 2 },
-            { id: 28, catCode: 'CHARACTER_QUEST', lv1: '年代記の管理者フィーナ', lv2: '絆の物語', lv3: null, name: '明日の海', order: 3 },
-            { id: 29, catCode: 'OTHER', lv1: '年代記の塔', lv2: null, lv3: null, name: '5階層突破', order: 1 }
-        ];
+        // カテゴリコードを数値IDにマッピング
+        const categoryMapping = {
+            'MAIN_STORY_PART1': 1,
+            'MAIN_STORY_PART2': 2,
+            'MAIN_STORY_PART3': 3,
+            'MAIN_STORY_PART4': 4,
+            'MAIN_STORY_PART5': 5,
+            'KIZUNA_NO_KISEKI': 6,
+            'DENSHO_HEN': 7,
+            'GRAND_SAGA': 8,
+            'SECRET_QUEST': 9,
+            'SIDE_STORY_PART4': 10,
+            'EVENT_QUEST_ANOMALY': 11,
+            'GAIDEN': 12,
+            'EVENT_TOUHA': 13,
+            'EVENT_DAISYURYO': 14,
+            'EVENT_KYOTEKI': 15,
+            'CHAIN_STORY': 16,
+            'EVENT_QUEST': 17,
+            'COLLAB_QUEST': 18,
+            'COLLAB_GAIDEN': 19,
+            'FREE_QUEST': 20,
+            'CHARACTER_QUEST': 21,
+            'OTHER': 99 // その他は最後に
+        };
 
-        const _scenarioCharacters = [
-            { scenarioId: 27, name: 'ピリカ' },
-            { scenarioId: 27, name: '主人公' },
-            { scenarioId: 27, name: 'フィーナ' },
-            { scenarioId: 27, name: '島民' },
-            { scenarioId: 27, name: '魔物' },
-            { scenarioId: 27, name: '酒場のマスター' },
-            { scenarioId: 1, name: 'フィーナ' },
-            { scenarioId: 1, name: '主人公' },
-            { scenarioId: 1, name: 'ピリカ' },
-            { scenarioId: 2, name: '主人公' },
-            { scenarioId: 2, name: '旅人A' },
-            { scenarioId: 3, name: 'フィーナ' },
-            { scenarioId: 3, name: '聖女' },
-            { scenarioId: 4, name: '主人公' },
-            { scenarioId: 4, name: '仲間B' },
-            { scenarioId: 26, name: 'フィーナ' },
-            { scenarioId: 26, name: '主人公' },
-            { scenarioId: 15, name: 'フィーナ' },
-            { scenarioId: 15, name: '研究者' },
-            { scenarioId: 25, name: 'フィーナ' },
-            { scenarioId: 25, name: '謎の人物' },
-        ];
-
-        // シナリオとキャラクターのデータを格納する配列
+        // シナリオデータを格納する配列
         let scenarios = [];
-        let scenarioCharacters = [];
-
-        let nextScenarioId = Math.max(...scenarios.map(s => s.id)) + 1;
-        let currentCharactersToRegister = [];
 
         // --- ページング関連の状態変数 ---
         let currentPage = 1;
@@ -352,6 +264,7 @@
 
         // --- 検索状態保持用変数 ---
         let lastCharacterNamesInput = '';
+        let lastNoteKeywordsInput = ''; // 備考キーワード入力
         let lastSearchMode = 'AND';
         let lastNotCharacterNamesInput = '';
         let lastNotSearchMode = 'NOT_AND';
@@ -363,6 +276,7 @@
         const mainSearchView = document.getElementById('main-search-view');
         const form = document.getElementById('search-form');
         const characterInput = document.getElementById('character-name-input');
+        const noteKeywordsInput = document.getElementById('note-keywords-input'); // 備考キーワード入力
         const categoryCheckboxesContainer = document.getElementById('category-checkboxes');
         const resultsOutput = document.getElementById('results-output');
         const searchContainer = document.getElementById('search-container');
@@ -371,11 +285,12 @@
         const detailScenarioName = document.getElementById('detail-scenario-name');
         const detailScenarioPath = document.getElementById('detail-scenario-path');
         const detailCharacterList = document.getElementById('detail-character-list');
+        const detailNote = document.getElementById('detail-note'); // 備考表示要素
         const backToSearchBtn = document.getElementById('back-to-search-btn');
 
         // Pagination elements
         const paginationControls = document.getElementById('pagination-controls');
-        const prevPageBtn = document.getElementById('prev-page-btn');
+        const prevPageBtn = document.getElementById('prev-page-btn'); 
         const nextPageBtn = document.getElementById('next-page-btn');
         const pageInfoSpan = document.getElementById('page-info');
 
@@ -384,30 +299,9 @@
         const notSearchOptionsDiv = document.getElementById('not-search-options');
         const notCharacterNameInput = document.getElementById('not-character-name-input');
 
-        // Registration screen elements
-        const showRegistrationBtn = document.getElementById('show-registration-btn');
-        const scenarioRegistrationContainer = document.getElementById('scenario-registration-container');
-        const registrationForm = document.getElementById('registration-form');
-        const regMajorCategorySelect = document.getElementById('reg-major-category');
-        const regLevel1Classification = document.getElementById('reg-level1-classification');
-        const regLevel2Classification = document.getElementById('reg-level2-classification');
-        const regLevel3Classification = document.getElementById('reg-level3-classification');
-        const groupLevel1Classification = document.getElementById('group-level1-classification');
-        const groupLevel2Classification = document.getElementById('group-level2-classification');
-        const groupLevel3Classification = document.getElementById('group-level3-classification');
-        const regScenarioName = document.getElementById('reg-scenario-name');
-        const regDisplayOrder = document.getElementById('reg-display-order');
-        const regCharacterNameInput = document.getElementById('reg-character-name');
-        const addCharacterBtn = document.getElementById('add-character-btn');
-        const addMainCharactersBtn = document.getElementById('add-main-characters-btn'); // 新しいボタン
-        const registeredCharacterList = document.getElementById('registered-character-list');
-        const backToSearchFromRegBtn = document.getElementById('back-to-search-from-reg-btn');
-        const toggleAllCheckboxesBtn = document.getElementById('toggle-all-checkboxes-btn');
-
-        // 主要キャラクターの定義
-        const mainCharacters = ['主人公', 'ピリカ', 'フィーナ'];
-
         // CSVファイルを読み込み、JSONオブジェクトの配列に変換する
+        // このCSVパーサーは、ダブルクォーテーションで囲まれたフィールド（内部カンマやエスケープされたダブルクォーテーションを含む）
+        // および、ダブルクォーテーションで囲まれていないフィールドの両方を処理できます。
         async function loadDataFromCsv(filePath) {
             try {
                 const response = await fetch(filePath);
@@ -415,22 +309,85 @@
                     throw new Error(`ファイルの読み込みに失敗しました: ${filePath} (${response.status} ${response.statusText})`);
                 }
                 const text = await response.text();
+                console.log('--- CSV Loading Debug: Fetched text ---');
+                console.log(text.substring(0, 500) + '...'); // 最初の500文字をログに表示
+                
                 const lines = text.trim().split('\n');
-                const headers = lines[0].split(',').map(header => header.trim());
-                return lines.slice(1).map(line => {
-                    const values = line.split(',').map(value => value.trim());
+                // ヘッダーからダブルクォーテーションを削除して、純粋な名前を取得
+                const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, '')); 
+                console.log('--- CSV Loading Debug: Parsed Headers ---');
+                console.log(headers);
+                
+                const parsedScenarios = lines.slice(1).map(line => {
                     const obj = {};
-                    headers.forEach((header, i) => {
-                        obj[header] = values[i] || null;
+                    const values = [];
+                    let inQuote = false;
+                    let currentField = '';
+
+                    for (let i = 0; i < line.length; i++) {
+                        const char = line[i];
+
+                        if (char === '"') {
+                            if (inQuote && i + 1 < line.length && line[i+1] === '"') {
+                                // エスケープされたクォーテーション: "" -> "
+                                currentField += '"';
+                                i++; // 次のクォーテーションをスキップ
+                            } else {
+                                // クォーテーションの状態を切り替え
+                                inQuote = !inQuote;
+                            }
+                        } else if (char === ',' && !inQuote) {
+                            // フィールドの終わり
+                            values.push(currentField.trim());
+                            currentField = '';
+                        } else {
+                            // 通常の文字
+                            currentField += char;
+                        }
+                    }
+                    values.push(currentField.trim()); // 最後のフィールドを追加
+
+                    // ヘッダーと値のペアをオブジェクトにマッピング
+                    headers.forEach((header, index) => {
+                        obj[header] = values[index] !== undefined ? values[index] : null;
                     });
+                    
                     // idとorderは数値としてパースする
                     if (obj.id) obj.id = parseInt(obj.id);
                     if (obj.order) obj.order = parseInt(obj.order);
+                    
+                    // catCodeを数値IDに変換
+                    if (obj.catCode && categoryMapping[obj.catCode]) {
+                        obj.catCodeId = categoryMapping[obj.catCode];
+                    } else {
+                        obj.catCodeId = 999; // マッピングにない場合は大きな数値を入れておく
+                    }
+
+                    // CSVヘッダーの 'charalist' と 'biko' を参照し、新しいプロパティに割り当てる
+                    // これらのプロパティが存在しない場合に備えて空文字列をデフォルト値とする
+                    obj.characters = (obj.charalist || '').split(/[,、]/).map(char => char.trim()).filter(char => char);
+                    obj.note = obj.biko || null;
+                    
+                    // 元のプロパティは削除する（任意ですが、一貫性のため維持）
+                    delete obj.charalist;
+                    delete obj.biko;
+                    
+                    console.log('--- CSV Loading Debug: Parsed Row Object ---');
+                    console.log(obj);
                     return obj;
                 });
+                console.log('--- CSV Loading Debug: Final scenarios array length ---');
+                console.log(parsedScenarios.length);
+                return parsedScenarios;
+
             } catch (error) {
-                console.error(error);
-                showCustomAlert('データの読み込み中にエラーが発生しました。コンソールを確認してください。');
+                console.error('データの読み込み中にエラーが発生しました:', error);
+                const errorMessage = 'データの読み込み中にエラーが発生しました。コンソールを確認してください。';
+                if (typeof showCustomAlert === 'function') {
+                    showCustomAlert(errorMessage);
+                } else {
+                    console.error(errorMessage);
+                }
                 return [];
             }
         }
@@ -438,6 +395,9 @@
 
         // --- 初期化処理 ---
         async function initialize() {
+            // DOM要素の定義を先頭に移動
+            const toggleAllCheckboxesBtn = document.getElementById('toggle-all-checkboxes-btn');
+
             categoryCheckboxesContainer.innerHTML = majorCategories.map(cat => `
                 <div class="flex items-center">
                     <input type="checkbox" id="cat-${cat.code}" value="${cat.code}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
@@ -445,27 +405,35 @@
                 </div>
             `).join('');
 
-            regMajorCategorySelect.innerHTML = majorCategories.map(cat => `
-                <option value="${cat.code}">${cat.name}</option>
-            `).join('');
+            const scenarioDataPath = 'scenario.csv'; 
+            scenarios = await loadDataFromCsv(scenarioDataPath);
 
-            const scenarioDataPath = 'scenario.csv';
-            const scenarioCharacterDataPath = 'scenariocharacter.csv';
+            // シナリオをソート（catCodeId, lv1, lv2, lv3, order の順）
+            scenarios.sort((a, b) => {
+                if (a.catCodeId < b.catCodeId) return -1;
+                if (a.catCodeId > b.catCodeId) return 1;
 
-            // Promise.allで両方のファイルの読み込みを並行して行う
-            [scenarios, scenarioCharacters] = await Promise.all([
-                loadDataFromCsv(scenarioDataPath),
-                loadDataFromCsv(scenarioCharacterDataPath)
-            ]);
+                const lv1A = a.lv1 || '';
+                const lv1B = b.lv1 || '';
+                if (lv1A < lv1B) return -1;
+                if (lv1A > lv1B) return 1;
+
+                const lv2A = a.lv2 || '';
+                const lv2B = b.lv2 || '';
+                if (lv2A < lv2B) return -1;
+                if (lv2A > lv2B) return 1;
+
+                const lv3A = a.lv3 || '';
+                const lv3B = b.lv3 || '';
+                if (lv3A < lv3B) return -1;
+                if (lv3A > lv3B) return 1;
+                
+                return a.order - b.order;
+            });
 
 
             form.addEventListener('submit', handleSearch);
             backToSearchBtn.addEventListener('click', hideCharacterDetails);
-            showRegistrationBtn.addEventListener('click', showRegistrationScreen);
-            backToSearchFromRegBtn.addEventListener('click', hideRegistrationScreen);
-            addCharacterBtn.addEventListener('click', addCharacterForRegistration);
-            addMainCharactersBtn.addEventListener('click', addMainCharacters); // 新しいボタンのイベントリスナー
-            registrationForm.addEventListener('submit', handleScenarioRegistration);
             
             prevPageBtn.addEventListener('click', goToPrevPage);
             nextPageBtn.addEventListener('click', goToNextPage);
@@ -473,26 +441,24 @@
             toggleNotSearchBtn.addEventListener('click', () => {
                 notSearchOptionsDiv.classList.toggle('hidden');
             });
-            toggleAllCheckboxesBtn.addEventListener('click', toggleAllCheckboxes);
+            // ここでDOM要素が定義されているため、イベントリスナーを設定
+            if (toggleAllCheckboxesBtn) { // Safety check
+                toggleAllCheckboxesBtn.addEventListener('click', toggleAllCheckboxes);
+            }
 
-            regMajorCategorySelect.addEventListener('change', updateClassificationFields);
-
-            updateRegisteredCharacterList();
-            updatePaginationControls(0, 0);
-            updateClassificationFields();
+            // 画面起動時の検索結果初期表示は行わない
+            displayMessage('ここに検索結果が表示されます。'); // 初期メッセージを表示
+            updatePaginationControls(0, 0); // 初期状態は0件でページングコントロールを更新
         }
 
-        // --- 画面遷移関数 ---
         function showMainSearchView() {
             mainSearchView.classList.remove('hidden');
             characterDetailContainer.classList.add('hidden');
-            scenarioRegistrationContainer.classList.add('hidden');
         }
 
         function showCharacterDetails(scenarioId) {
             mainSearchView.classList.add('hidden');
             characterDetailContainer.classList.remove('hidden');
-            scenarioRegistrationContainer.classList.add('hidden');
 
             const scenario = scenarios.find(s => s.id === scenarioId);
             if (!scenario) {
@@ -500,7 +466,7 @@
                 return;
             }
 
-            const charactersInScenario = scenarioCharacters.filter(char => Number(char.scenarioId) === scenarioId);
+            const charactersInScenario = scenario.characters || [];
             const category = majorCategories.find(cat => cat.code === scenario.catCode);
             const path = [
                 category ? category.name : '',
@@ -512,16 +478,24 @@
             detailScenarioName.textContent = scenario.name;
             detailScenarioPath.textContent = path;
             detailCharacterList.innerHTML = charactersInScenario.length > 0
-                ? charactersInScenario.map(char => `<li>${char.name}</li>`).join('')
+                ? charactersInScenario.map(char => `<li>${char}</li>`).join('')
                 : '<li>登場キャラクターはいません。</li>';
+            
+            detailNote.textContent = scenario.note || '備考はありません。';
         }
 
         function hideCharacterDetails() {
             showMainSearchView();
             characterInput.value = lastCharacterNamesInput;
-            document.querySelector(`input[name="search_mode"][value="${lastSearchMode}"]`).checked = true;
-            notCharacterNameInput.value = lastNotCharacterNamesInput;
-            document.querySelector(`input[name="not_search_mode"][value="${lastNotSearchMode}"]`).checked = true;
+            noteKeywordsInput.value = lastNoteKeywordsInput;
+            
+            // 検索モードのラジオボタンの状態を復元
+            const searchModeRadio = document.querySelector(`input[name="search_mode"][value="${lastSearchMode}"]`); 
+            if (searchModeRadio) searchModeRadio.checked = true; 
+            
+            // NOT検索モードのラジオボタンの状態を復元
+            const notSearchModeRadio = document.querySelector(`input[name="not_search_mode"][value="${lastNotSearchMode}"]`); 
+            if (notSearchModeRadio) notSearchModeRadio.checked = true; 
             
             if (lastNotCharacterNamesInput) {
                 notSearchOptionsDiv.classList.remove('hidden');
@@ -538,18 +512,6 @@
             displayPaginatedResults();
         }
 
-        function showRegistrationScreen() {
-            mainSearchView.classList.add('hidden');
-            characterDetailContainer.classList.add('hidden');
-            scenarioRegistrationContainer.classList.remove('hidden');
-            clearRegistrationForm();
-        }
-
-        function hideRegistrationScreen() {
-            showMainSearchView();
-            clearRegistrationForm();
-        }
-
         function toggleAllCheckboxes() {
             const allCheckboxes = document.querySelectorAll('#category-checkboxes input[type="checkbox"]');
             let isAnyChecked = Array.from(allCheckboxes).some(cb => cb.checked);
@@ -559,129 +521,93 @@
             });
         }
 
-        // --- 検索機能 ---
         function handleSearch(event) {
             event.preventDefault();
+            console.log('--- Search Debug: handleSearch called ---');
 
             lastCharacterNamesInput = characterInput.value.trim();
+            lastNoteKeywordsInput = noteKeywordsInput.value.trim();
             lastSearchMode = document.querySelector('input[name="search_mode"]:checked').value;
             lastNotCharacterNamesInput = notCharacterNameInput.value.trim();
             lastNotSearchMode = document.querySelector('input[name="not_search_mode"]:checked').value;
             lastSelectedCategoryCodes = Array.from(categoryCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value);
 
+            console.log('Search Inputs:', {
+                character: lastCharacterNamesInput,
+                note: lastNoteKeywordsInput,
+                mode: lastSearchMode,
+                notChar: lastNotCharacterNamesInput,
+                notMode: lastNotSearchMode,
+                categories: lastSelectedCategoryCodes
+            });
+
             const characterNames = lastCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0);
             const notCharacterNames = lastNotCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0);
+            const noteSearchString = lastNoteKeywordsInput; 
 
-            if (characterNames.length === 0 && notCharacterNames.length === 0) {
-                displayMessage('キャラクター名またはNOT検索キャラクター名を入力してください。');
-                updatePaginationControls(0, 0);
+            if (characterNames.length === 0 && notCharacterNames.length === 0 && noteSearchString.length === 0 && lastSelectedCategoryCodes.length === 0) {
+                // 検索条件がすべて空の場合は、全件表示に戻す
+                filteredScenarios = [...scenarios];
+                displayPaginatedResults();
                 return;
             }
 
 
-            let baseMatchingScenarioIds = new Set();
-            if (characterNames.length > 0) {
-                if (lastSearchMode === 'OR') {
-                    characterNames.forEach(charNameQuery => {
-                        scenarioCharacters
-                            .filter(char => char.name.includes(charNameQuery))
-                            .forEach(char => {
-                                // シナリオIDを数値に変換してからSetに追加
-                                baseMatchingScenarioIds.add(Number(char.scenarioId));
-                            });
-                    });
-                } else {
-                    let andScenarioIds = scenarios.filter(scenario => {
-                        const charactersInThisScenario = scenarioCharacters
-                            .filter(sc => Number(sc.scenarioId) === scenario.id)
-                            .map(sc => sc.name.trim()); // trim()を適用
-                        
-                        // 入力されたキャラクター名をSetに変換
-                        const characterSet = new Set(characterNames.map(name => name.trim()));
-                        // シナリオの登場キャラクターをSetに変換
-                        const scenarioSet = new Set(charactersInThisScenario);
-
-                        // 検索されたすべてのキャラクターが、そのシナリオに登場しているかを確認
-                        // 以下のロジックがAND検索の鍵となる
-                        return [...characterSet].every(char => scenarioSet.has(char));
-                    }).map(s => s.id);
-
-                    andScenarioIds.forEach(id => baseMatchingScenarioIds.add(id));
-                }
-            } else {
-                scenarios.forEach(s => baseMatchingScenarioIds.add(s.id));
-            }
-
-            // キャラクターフィルタリングが完了した直後
-            console.log('--- キャラクターフィルタリング後 ---');
-            console.log('baseMatchingScenarioIds:', baseMatchingScenarioIds);
-            console.log('baseMatchingScenarioIdsの最初の要素の型:', typeof Array.from(baseMatchingScenarioIds)[0]);
-            console.log('scenarios配列の最初のシナリオID:', scenarios[0].id);
-            console.log('scenariosの最初のシナリオIDの型:', typeof scenarios[0].id);
-            // その後のフィルタリング処理
             let currentFilteredScenarios = scenarios.filter(scenario => {
-                // フィルタリング処理のデバッグ
-                const scenarioId = Number(scenario.id); // 明示的に数値に変換
-                
-                // has()メソッドで比較
-                const hasMatch = baseMatchingScenarioIds.has(scenarioId);
-                
-                console.log(`- シナリオID: ${scenarioId}, baseMatchingScenarioIdsに含まれるか: ${hasMatch}`);
-
-                return hasMatch;
-            });
-            //let currentFilteredScenarios = scenarios.filter(scenario => baseMatchingScenarioIds.has(scenario.id));
-
-            // 修正後のNOT検索ブロック
-            if (notCharacterNames.length > 0) {
-                currentFilteredScenarios = currentFilteredScenarios.filter(scenario => {
-                    const charactersInThisScenario = scenarioCharacters
-                        .filter(sc => Number(sc.scenarioId) === scenario.id)
-                        .map(sc => sc.name.trim());
-                    
-                    let isNotMatch = false; // 変数をここで宣言
-                    
-                    if (lastNotSearchMode === 'NOT_OR') {
-                        // NOT OR検索: 入力されたすべてのキャラクターがシナリオに登場しない
-                        isNotMatch = notCharacterNames.every(notCharNameQuery =>
-                            !charactersInThisScenario.some(charInScenario => charInScenario === notCharNameQuery.trim())
-                        );
-                    } else {
-                        // NOT AND検索: 入力されたすべてのキャラクターがシナリオに登場するわけではない
-                        isNotMatch = !notCharacterNames.every(notCharNameQuery =>
-                            charactersInThisScenario.some(charInScenario => charInScenario === notCharNameQuery.trim())
+                let isCharacterMatch = true;
+                if (characterNames.length > 0) {
+                    if (lastSearchMode === 'OR') {
+                        isCharacterMatch = scenario.characters && scenario.characters.some(char => characterNames.some(query => char.includes(query)));
+                    } else { // AND
+                        isCharacterMatch = scenario.characters && characterNames.every(query => 
+                            scenario.characters.some(char => char.includes(query))
                         );
                     }
+                }
 
-                    // デバッグログ
-                    console.log(`- シナリオID ${scenario.id}: NOT検索結果 -> ${isNotMatch}`);
-                    
-                    return isNotMatch;
-                });
-            }
+                let isNotCharacterMatch = true;
+                if (notCharacterNames.length > 0) {
+                    if (lastNotSearchMode === 'NOT_OR') { // NOT OR: 指定された文字のどれも含まない
+                        isNotCharacterMatch = !notCharacterNames.some(query => 
+                            scenario.characters && scenario.characters.some(char => char.includes(query))
+                        );
+                    } else { // NOT AND: 指定された文字の全ては含まない（いずれか一つでも含まなければOK）
+                        isNotCharacterMatch = !notCharacterNames.every(query => 
+                            scenario.characters && scenario.characters.some(char => char.includes(query))
+                        );
+                    }
+                }
 
-            if (lastSelectedCategoryCodes.length > 0) {
-                currentFilteredScenarios = currentFilteredScenarios.filter(scenario => {
-                    // CSVデータのcatCodeから余分な空白を削除してから比較
-                    const trimmedCatCode = scenario.catCode ? scenario.catCode.trim() : null;
-                    return lastSelectedCategoryCodes.includes(trimmedCatCode);
-                });
-            }
-           
-            currentFilteredScenarios.sort((a, b) => {
-                const catA = majorCategories.find(cat => cat.code === a.catCode)?.name || '';
-                const catB = majorCategories.find(cat => cat.code === b.catCode)?.name || '';
-                if (catA < catB) return -1;
-                if (catA > catB) return 1;
-                return a.order - b.order;
+                let isNoteMatch = true;
+                if (noteSearchString.length > 0) {
+                    isNoteMatch = scenario.note && scenario.note.includes(noteSearchString);
+                }
+
+                const isCategoryMatch = lastSelectedCategoryCodes.length === 0 || 
+                                        lastSelectedCategoryCodes.some(code => {
+                                            return typeof code === 'string' && code && 
+                                                   typeof scenario.catCode === 'string' && scenario.catCode && 
+                                                   scenario.catCode.trim() === code.trim();
+                                        });
+
+                console.log(`--- Filtering Debug: ${scenario.name} ---`);
+                console.log(`  CatCode: ${scenario.catCode}, isCategoryMatch: ${isCategoryMatch}`);
+                console.log(`  Characters: ${scenario.characters}, isCharacterMatch: ${isCharacterMatch}`);
+                console.log(`  Note: ${scenario.note}, isNoteMatch: ${isNoteMatch}`);
+                console.log(`  isNotCharacterMatch: ${isNotCharacterMatch}`);
+                console.log(`  Overall Match: ${isCharacterMatch && isNotCharacterMatch && isNoteMatch && isCategoryMatch}`);
+
+
+                return isCharacterMatch && isNotCharacterMatch && isNoteMatch && isCategoryMatch;
             });
-
+           
             filteredScenarios = currentFilteredScenarios;
             lastFilteredScenarios = filteredScenarios;
             currentPage = 1;
             lastCurrentPage = 1;
 
-            console.log('最終的な検索結果:', filteredScenarios);
+            console.log('--- Search Debug: Filtered Scenarios Count ---');
+            console.log(filteredScenarios.length);
 
             displayPaginatedResults();
         }
@@ -730,7 +656,6 @@
              resultsOutput.innerHTML = `<p class="text-gray-500 text-center py-8">${message}</p>`;
         }
 
-        // --- ページングコントロール関数 ---
         function updatePaginationControls(current, total) {
             pageInfoSpan.textContent = `${current} / ${total}`;
             prevPageBtn.disabled = current <= 1;
@@ -754,126 +679,28 @@
             }
         }
 
-        // --- シナリオ登録機能 ---
-        function updateClassificationFields() {
-            const selectedCategoryCode = regMajorCategorySelect.value;
-            const selectedCategory = majorCategories.find(cat => cat.code === selectedCategoryCode);
+        function showCustomAlert(message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background-color: #4a5568;
+                color: white;
+                padding: 15px 30px;
+                border-radius: 8px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+                z-index: 1000;
+                font-size: 1.1rem;
+                text-align: center;
+            `;
+            alertDiv.textContent = message;
+            document.body.appendChild(alertDiv);
 
-            if (selectedCategory.hasLv1) {
-                groupLevel1Classification.classList.remove('hidden');
-                regLevel1Classification.disabled = false;
-                regLevel1Classification.placeholder = selectedCategory.exLv1 || '';
-            } else {
-                groupLevel1Classification.classList.add('hidden');
-                regLevel1Classification.disabled = true;
-                regLevel1Classification.value = '';
-                regLevel1Classification.placeholder = '';
-            }
-
-            if (selectedCategory.hasLv2) {
-                groupLevel2Classification.classList.remove('hidden');
-                regLevel2Classification.disabled = false;
-                regLevel2Classification.placeholder = selectedCategory.exLv2 || '';
-            } else {
-                groupLevel2Classification.classList.add('hidden');
-                regLevel2Classification.disabled = true;
-                regLevel2Classification.value = '';
-                regLevel2Classification.placeholder = '';
-            }
-
-            if (selectedCategory.hasLv3) {
-                groupLevel3Classification.classList.remove('hidden');
-                regLevel3Classification.disabled = false;
-                regLevel3Classification.placeholder = selectedCategory.exLv3 || '';
-            } else {
-                groupLevel3Classification.classList.add('hidden');
-                regLevel3Classification.disabled = true;
-                regLevel3Classification.value = '';
-                regLevel3Classification.placeholder = '';
-            }
-        }
-        
-        function addCharacterForRegistration() {
-            const charName = regCharacterNameInput.value.trim();
-            if (charName && !currentCharactersToRegister.includes(charName)) {
-                currentCharactersToRegister.push(charName);
-                updateRegisteredCharacterList();
-                regCharacterNameInput.value = '';
-                regCharacterNameInput.focus();
-            }
-        }
-        
-        // 主要キャラクターを一括で追加する関数
-        function addMainCharacters() {
-            mainCharacters.forEach(charName => {
-                if (!currentCharactersToRegister.includes(charName)) {
-                    currentCharactersToRegister.push(charName);
-                }
-            });
-            updateRegisteredCharacterList();
-        }
-
-        function removeCharacterForRegistration(charName) {
-            currentCharactersToRegister = currentCharactersToRegister.filter(name => name !== charName);
-            updateRegisteredCharacterList();
-        }
-
-        function updateRegisteredCharacterList() {
-            if (currentCharactersToRegister.length === 0) {
-                registeredCharacterList.innerHTML = '<li class="text-gray-500 text-sm text-center py-2">追加されたキャラクターが表示されます。</li>';
-            } else {
-                registeredCharacterList.innerHTML = currentCharactersToRegister.map(char => `
-                    <li class="character-list-item">
-                        <span>${char}</span>
-                        <button type="button" data-char-name="${char}">削除</button>
-                    </li>
-                `).join('');
-                registeredCharacterList.querySelectorAll('button').forEach(btn => {
-                    btn.addEventListener('click', (event) => {
-                        removeCharacterForRegistration(event.target.dataset.char-name);
-                    });
-                });
-            }
-        }
-
-        function handleScenarioRegistration(event) {
-            event.preventDefault();
-
-            const newScenarioName = regScenarioName.value.trim();
-            if (!newScenarioName) {
-                alert('シナリオ名は必須です。');
-                return;
-            }
-
-            const newScenario = {
-                id: nextScenarioId++,
-                catCode: regMajorCategorySelect.value,
-                lv1: regLevel1Classification.value.trim() || null,
-                lv2: regLevel2Classification.value.trim() || null,
-                lv3: regLevel3Classification.value.trim() || null,
-                name: newScenarioName,
-                order: parseInt(regDisplayOrder.value) || 1
-            };
-
-            scenarios.push(newScenario);
-
-            currentCharactersToRegister.forEach(charName => {
-                scenarioCharacters.push({
-                    scenarioId: newScenario.id,
-                    name: charName
-                });
-            });
-
-            alert('シナリオが正常に登録されました！');
-            hideRegistrationScreen();
-        }
-
-        function clearRegistrationForm() {
-            registrationForm.reset();
-            regDisplayOrder.value = 1;
-            currentCharactersToRegister = [];
-            updateRegisteredCharacterList();
-            updateClassificationFields();
+            setTimeout(() => {
+                document.body.removeChild(alertDiv);
+            }, 3000);
         }
 
         initialize();
