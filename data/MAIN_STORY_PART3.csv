@@ -1,0 +1,4 @@
+id,catCode,lv1,lv1_order,lv2,lv2_order,lv3,lv3_order,name,order,biko,charalist
+1,MAIN_STORY_PART3,"ヘリオス篇",1,"1章",1,,,"王都の少年",1,,"ヘリオス,トロメア,シャロン"
+2,MAIN_STORY_PART3,"ヘリオス篇",1,"1章",1,,,"聖王女",2,,"ヘリオス,トロメア,シャロン,ユリアナ,カイン"
+3,MAIN_STORY_PART3,"アリーチェ篇",2,"1章",1,,,"魔法学園普通科",1,,"アリーチェ,ベルタ,カーリン,デルフィーナ"
