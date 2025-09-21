@@ -169,52 +169,43 @@
                     <form id="search-form">
                         <div class="mb-6">
                             <!-- キャラクター名 -->
-                            <div class="flex items-center justify-between">
-                                <label for="character-name-input"
-                                    class="text-lg font-semibold text-gray-700">キャラクター名</label>
+                            <div class="flex items-center mb-2">
+                                <label for="character-name-input" class="text-lg font-semibold text-gray-700 mr-2">キャラ名</label>
+                                <div class="flex-1"></div>
+                                <div class="flex items-center space-x-2 justify-end">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="character_search_mode" value="NOT_AND" class="form-radio text-red-600" checked>
+                                        <span class="ml-1 text-xs text-gray-700">AND</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="character_search_mode" value="NOT_OR" class="form-radio text-red-600">
+                                        <span class="ml-1 text-xs text-gray-700">OR</span>
+                                    </label>
+                                </div>
                             </div>
-                            <div class="flex space-x-4">
-                                <div class="flex-grow">
-                                    <input type="text" id="character-name-input" placeholder="例: 主人公,フィーナ"
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                                </div>
-                                <div class="flex items-center space-x-4 bg-gray-50 px-4 rounded-md">
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" name="character_search_mode" value="NOT_AND"
-                                            class="form-radio text-red-600" checked>
-                                        <span class="ml-2 text-gray-700">AND</span>
-                                    </label>
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" name="character_search_mode" value="NOT_OR"
-                                            class="form-radio text-red-600">
-                                        <span class="ml-2 text-gray-700">OR</span>
-                                    </label>
-                                </div>
+                            <div class="flex">
+                                <input type="text" id="character-name-input" placeholder="例: 主人公,フィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             </div>
                             <p class="text-sm text-gray-500 mt-1 leading-relaxed">
                                 複数のキャラクター名はカンマ(,)、読点(、)、またはスペースで区切ってください。</p>
 
                             <!-- クエスト名 -->
-                            <div class="flex items-center justify-between mt-3">
-                                <label for="quest-name-input" class="text-lg font-semibold text-gray-700">クエスト名</label>
+                            <div class="flex items-center mb-2 mt-3">
+                                <label for="quest-name-input" class="text-lg font-semibold text-gray-700 mr-2">クエスト名</label>
+                                <div class="flex-1"></div>
+                                <div class="flex items-center space-x-2 justify-end">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="quest_search_mode" value="AND" class="form-radio text-red-600">
+                                        <span class="ml-1 text-xs text-gray-700">AND</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="quest_search_mode" value="OR" class="form-radio text-red-600" checked>
+                                        <span class="ml-1 text-xs text-gray-700">OR</span>
+                                    </label>
+                                </div>
                             </div>
-                            <div class="flex space-x-4">
-                                <div class="flex-grow">
-                                    <input type="text" id="quest-name-input" placeholder="例:アリーチェ篇、聖都、ユリアナ、2014 "
-                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                                </div>
-                                <div class="flex items-center space-x-4 bg-gray-50 px-4 rounded-md">
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" name="quest_search_mode" value="AND"
-                                            class="form-radio text-red-600">
-                                        <span class="ml-2 text-gray-700">AND</span>
-                                    </label>
-                                    <label class="inline-flex items-center">
-                                        <input type="radio" name="quest_search_mode" value="OR"
-                                            class="form-radio text-red-600" checked>
-                                        <span class="ml-2 text-gray-700">OR</span>
-                                    </label>
-                                </div>
+                            <div class="flex">
+                                <input type="text" id="quest-name-input" placeholder="例:アリーチェ篇、聖都、ユリアナ、2014 " class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             </div>
 
                             <p class="text-sm text-gray-500 mt-1">ストーリー名、所属・キャラ名（キャラクエ検索用）、実装年　など</p>
@@ -229,24 +220,20 @@
                                 class="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50 hidden">
 
                                 <label for="not-character-name-input"
-                                    class="block mb-2 text-lg font-semibold text-gray-700">除外キャラクター名</label>
-                                <div class="flex space-x-4">
-                                    <div class="flex-grow">
-                                        <input type="text" id="not-character-name-input" placeholder="例: デルフィーナ"
-                                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                                    </div>
-                                    <div class="flex items-center space-x-4 bg-gray-50 px-4 rounded-md">
+                                    class="mb-2 text-lg font-semibold text-gray-700 flex items-center justify-between">除外キャラ名
+                                    <span class="flex items-center space-x-2">
                                         <label class="inline-flex items-center">
-                                            <input type="radio" name="not_character_search_mode" value="NOT_AND"
-                                                class="form-radio text-red-600">
-                                            <span class="ml-2 text-gray-700">AND</span>
+                                            <input type="radio" name="not_character_search_mode" value="NOT_AND" class="form-radio text-red-600">
+                                            <span class="ml-1 text-xs text-gray-700">AND</span>
                                         </label>
                                         <label class="inline-flex items-center">
-                                            <input type="radio" name="not_character_search_mode" value="NOT_OR"
-                                                class="form-radio text-red-600" checked>
-                                            <span class="ml-2 text-gray-700">OR</span>
+                                            <input type="radio" name="not_character_search_mode" value="NOT_OR" class="form-radio text-red-600" checked>
+                                            <span class="ml-1 text-xs text-gray-700">OR</span>
                                         </label>
-                                    </div>
+                                    </span>
+                                </label>
+                                <div class="flex">
+                                    <input type="text" id="not-character-name-input" placeholder="例: デルフィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                                 </div>
                                 <p class="text-sm text-gray-500 mt-1 mb-2">これらのキャラクターが**含まれない**シナリオを検索します。</p>
                                 <div class="mb-2">
@@ -254,7 +241,7 @@
                                         class="block mb-2 text-lg font-semibold text-gray-700">備考欄キーワード</label>
                                     <input type="text" id="note-keywords-input" placeholder=""
                                         class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                                    <p class="text-sm text-gray-500 mt-1">備考欄に含まれるキーワードで検索します。入力された文字列全体で部分一致検索を行います。
+                                    <p class="text-sm text-gray-500 mt-1">備考欄に含まれるキーワードで部分一致検索します。
                                     </p>
                                 </div>
 
@@ -282,15 +269,15 @@
 
                         <h3 class="block mb-3 text-lg font-semibold text-gray-700">表示</h3>
                         <!-- 並び順 -->
-                        <div class="mb-4 flex items-center">
+                        <div class="mb-2 flex items-center flex-wrap">
                             <span class="text-sm font-semibold text-gray-700 mr-2">並び順:</span>
-                            <input type="radio" id="sort-scenario" name="sort_mode" value="scenario" checked
-                                class="ml-2">
+                            <input type="radio" id="sort-scenario" name="sort_mode" value="scenario" checked class="ml-2">
                             <label for="sort-scenario" class="ml-1 mr-3 text-sm">シナリオ順</label>
-                            <input type="radio" id="sort-character-count" name="sort_mode" value="characterCount"
-                                class="ml-2">
+                            <input type="radio" id="sort-character-count" name="sort_mode" value="characterCount" class="ml-2">
                             <label for="sort-character-count" class="ml-1 mr-3 text-sm">人数順</label>
-                            <span class="ml-4 text-sm font-semibold text-gray-700">昇順/降順:</span>
+                        </div>
+                        <div class="mb-4 flex items-center flex-wrap">
+                            <span class="text-sm font-semibold text-gray-700 mr-2">昇順／降順:</span>
                             <input type="radio" id="sort-asc" name="sort_order" value="asc" checked class="ml-2">
                             <label for="sort-asc" class="ml-1 mr-3 text-sm">昇順</label>
                             <input type="radio" id="sort-desc" name="sort_order" value="desc" class="ml-2">
@@ -632,6 +619,11 @@
                     window.currentPage--;
                     window.lastCurrentPage = window.currentPage;
                     displayPaginatedResults();
+                    // 検索結果一覧の一番上にスクロール
+                    const resultsContainer = document.getElementById('results-container');
+                    if (resultsContainer) {
+                        resultsContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
+                    }
                 }
             });
             nextPageBtn.addEventListener('click', function () {
@@ -640,6 +632,11 @@
                     window.currentPage++;
                     window.lastCurrentPage = window.currentPage;
                     displayPaginatedResults();
+                    // 検索結果一覧の一番上にスクロール
+                    const resultsContainer = document.getElementById('results-container');
+                    if (resultsContainer) {
+                        resultsContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
+                    }
                 }
             });
 
