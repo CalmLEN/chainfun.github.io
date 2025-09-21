@@ -1,34 +1,45 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シナリオ検索</title>
+    <title>ピリカの絵日記（シナリオ検索）</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="backend/data.js"></script>
+    <script src="backend/csv_loader.js"></script>
+    <script src="backend/search_logic.js"></script>
     <style>
         body {
             font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', Meiryo, sans-serif;
             background-color: #fdfdfc;
         }
+
         .accent-color {
             background-color: #4a5568;
         }
+
         .accent-color-hover:hover {
             background-color: #2d3748;
         }
+
         .result-item strong {
             color: #2c5282;
             cursor: pointer;
         }
+
         .result-item strong:hover {
             text-decoration: underline;
         }
+
         .hidden {
             display: none;
         }
+
         .form-input-group {
             margin-bottom: 1.5rem;
         }
+
         .form-input-group label {
             display: block;
             margin-bottom: 0.5rem;
@@ -36,6 +47,7 @@
             font-weight: 600;
             color: #4a5568;
         }
+
         .form-input-group input[type="text"],
         .form-input-group input[type="number"],
         .form-input-group select {
@@ -46,19 +58,23 @@
             outline: none;
             transition: all 0.2s ease-in-out;
         }
+
         .form-input-group input[type="text"]:focus,
         .form-input-group input[type="number"]:focus,
         .form-input-group select:focus {
             border-color: #3b82f6;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
         }
+
         .character-add-input-group {
             display: flex;
             gap: 0.5rem;
         }
+
         .character-add-input-group input {
             flex-grow: 1;
         }
+
         .character-list-item {
             display: flex;
             justify-content: space-between;
@@ -66,9 +82,11 @@
             padding: 0.5rem 0;
             border-bottom: 1px dashed #e5e7eb;
         }
+
         .character-list-item:last-child {
             border-bottom: none;
         }
+
         .character-list-item button {
             background-color: #ef4444;
             color: white;
@@ -78,13 +96,16 @@
             cursor: pointer;
             transition: background-color 0.2s ease;
         }
+
         .character-list-item button:hover {
             background-color: #dc2626;
         }
+
         .pagination-controls button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -100,6 +121,7 @@
             font-size: 1.5rem;
             flex-direction: column;
         }
+
         .loader {
             border: 8px solid #f3f3f3;
             border-top: 8px solid #3498db;
@@ -111,15 +133,22 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         #detail-note {
-        white-space: pre-wrap; /* 改行を保持して表示 */
-    }
+            white-space: pre-wrap;
+            /* 改行を保持して表示 */
+        }
     </style>
 </head>
+
 <body class="text-gray-800">
 
     <div id="loading-overlay" class="loading-overlay hidden">
@@ -128,9 +157,9 @@
     </div>
 
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
-        
+
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">シナリオ検索</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">ピリカの絵日記</h1>
             <p class="mt-2 text-gray-500">キャラクター名とシナリオ分類で、登場するシナリオを検索します。</p>
         </header>
 
@@ -139,665 +168,508 @@
                 <div id="search-container" class="bg-white p-6 rounded-lg shadow-md mb-8">
                     <form id="search-form">
                         <div class="mb-6">
-                            <label for="character-name-input" class="block mb-2 text-lg font-semibold text-gray-700">キャラクター名</label>
-                            <input type="text" id="character-name-input" placeholder="例: 主人公,フィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                            <p class="text-sm text-gray-500 mt-1">複数のキャラクター名はカンマ(,)、読点(、)、またはスペースで区切ってください。</p>
-                        </div>
-
-                        <div class="mb-6">
-                            <label for="note-keywords-input" class="block mb-2 text-lg font-semibold text-gray-700">備考欄キーワード</label>
-                            <input type="text" id="note-keywords-input" placeholder="" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                            <p class="text-sm text-gray-500 mt-1">備考欄に含まれるキーワードで検索します。入力された文字列全体で部分一致検索を行います。</p>
-                        </div>
-
-                        <div class="mb-6">
-                            <h3 class="block mb-3 text-lg font-semibold text-gray-700">検索モード</h3>
-                            <div class="flex items-center space-x-4">
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="search_mode" value="AND" class="form-radio text-blue-600" checked>
-                                    <span class="ml-2 text-gray-700">AND検索 (すべて含む)</span>
-                                </label>
-                                <label class="inline-flex items-center">
-                                    <input type="radio" name="search_mode" value="OR" class="form-radio text-blue-600">
-                                    <span class="ml-2 text-gray-700">OR検索 (いずれか含む)</span>
-                                </label>
+                            <!-- キャラクター名 -->
+                            <div class="flex items-center justify-between">
+                                <label for="character-name-input"
+                                    class="text-lg font-semibold text-gray-700">キャラクター名</label>
                             </div>
-                        </div>
-
-                        <div class="mb-6">
-                            <button type="button" id="toggle-not-search-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 text-sm">
-                                NOT検索オプションを切り替え
-                            </button>
-                            <div id="not-search-options" class="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50 hidden">
-                                <label for="not-character-name-input" class="block mb-2 text-lg font-semibold text-gray-700">NOT検索キャラクター名</label>
-                                <input type="text" id="not-character-name-input" placeholder="例: デルフィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                                <p class="text-sm text-gray-500 mt-1">これらのキャラクターが**含まれない**シナリオを検索します。</p>
-                                <div class="flex items-center space-x-4 mt-3">
+                            <div class="flex space-x-4">
+                                <div class="flex-grow">
+                                    <input type="text" id="character-name-input" placeholder="例: 主人公,フィーナ"
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                </div>
+                                <div class="flex items-center space-x-4 bg-gray-50 px-4 rounded-md">
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="not_search_mode" value="NOT_AND" class="form-radio text-red-600" checked>
-                                        <span class="ml-2 text-gray-700">NOT AND (すべて含まない)</span>
+                                        <input type="radio" name="character_search_mode" value="NOT_AND"
+                                            class="form-radio text-red-600" checked>
+                                        <span class="ml-2 text-gray-700">AND</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="not_search_mode" value="NOT_OR" class="form-radio text-red-600">
-                                        <span class="ml-2 text-gray-700">NOT OR (いずれも含まない)</span>
+                                        <input type="radio" name="character_search_mode" value="NOT_OR"
+                                            class="form-radio text-red-600">
+                                        <span class="ml-2 text-gray-700">OR</span>
                                     </label>
                                 </div>
                             </div>
+                            <p class="text-sm text-gray-500 mt-1 leading-relaxed">
+                                複数のキャラクター名はカンマ(,)、読点(、)、またはスペースで区切ってください。</p>
+
+                            <!-- クエスト名 -->
+                            <div class="flex items-center justify-between mt-3">
+                                <label for="quest-name-input" class="text-lg font-semibold text-gray-700">クエスト名</label>
+                            </div>
+                            <div class="flex space-x-4">
+                                <div class="flex-grow">
+                                    <input type="text" id="quest-name-input" placeholder="例:アリーチェ篇、聖都、ユリアナ、2014 "
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                </div>
+                                <div class="flex items-center space-x-4 bg-gray-50 px-4 rounded-md">
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="quest_search_mode" value="AND"
+                                            class="form-radio text-red-600">
+                                        <span class="ml-2 text-gray-700">AND</span>
+                                    </label>
+                                    <label class="inline-flex items-center">
+                                        <input type="radio" name="quest_search_mode" value="OR"
+                                            class="form-radio text-red-600" checked>
+                                        <span class="ml-2 text-gray-700">OR</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <p class="text-sm text-gray-500 mt-1">ストーリー名、所属・キャラ名（キャラクエ検索用）、実装年　など</p>
+                        </div>
+
+                        <div class="mb-4">
+                            <button type="button" id="toggle-other-search-btn"
+                                class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md transition-transform transform hover:scale-105 text-sm">
+                                他検索条件
+                            </button>
+                            <div id="other-search-options"
+                                class="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50 hidden">
+
+                                <label for="not-character-name-input"
+                                    class="block mb-2 text-lg font-semibold text-gray-700">除外キャラクター名</label>
+                                <div class="flex space-x-4">
+                                    <div class="flex-grow">
+                                        <input type="text" id="not-character-name-input" placeholder="例: デルフィーナ"
+                                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                    </div>
+                                    <div class="flex items-center space-x-4 bg-gray-50 px-4 rounded-md">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="not_character_search_mode" value="NOT_AND"
+                                                class="form-radio text-red-600">
+                                            <span class="ml-2 text-gray-700">AND</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="not_character_search_mode" value="NOT_OR"
+                                                class="form-radio text-red-600" checked>
+                                            <span class="ml-2 text-gray-700">OR</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1 mb-2">これらのキャラクターが**含まれない**シナリオを検索します。</p>
+                                <div class="mb-2">
+                                    <label for="note-keywords-input"
+                                        class="block mb-2 text-lg font-semibold text-gray-700">備考欄キーワード</label>
+                                    <input type="text" id="note-keywords-input" placeholder=""
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                    <p class="text-sm text-gray-500 mt-1">備考欄に含まれるキーワードで検索します。入力された文字列全体で部分一致検索を行います。
+                                    </p>
+                                </div>
+
+                                <!-- 備考ありのみ検索 -->
+                                <div class="mb-4 flex items-center">
+                                    <input type="checkbox" id="note-exists-only" class="mr-2">
+                                    <label for="note-exists-only"
+                                        class="text-sm font-semibold text-gray-700">備考があるシナリオのみ表示</label>
+                                </div>
+
+                            </div>
+
                         </div>
 
                         <div class="mb-6">
                             <h3 class="block mb-3 text-lg font-semibold text-gray-700">シナリオ分類で絞り込む</h3>
-                                 
-                            <button type="button" id="toggle-all-checkboxes-btn" class="ml-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-1 px-3 rounded-md transition-transform transform hover:scale-105">
-                                    全選択/全解除
-                                </button>
+
+                            <button type="button" id="toggle-all-checkboxes-btn"
+                                class="ml-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-1 px-3 rounded-md transition-transform transform hover:scale-105">
+                                全選択/全解除
+                            </button>
                             <div id="category-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                                </div>
+                            </div>
                         </div>
 
+                        <h3 class="block mb-3 text-lg font-semibold text-gray-700">表示</h3>
+                        <!-- 並び順 -->
+                        <div class="mb-4 flex items-center">
+                            <span class="text-sm font-semibold text-gray-700 mr-2">並び順:</span>
+                            <input type="radio" id="sort-scenario" name="sort_mode" value="scenario" checked
+                                class="ml-2">
+                            <label for="sort-scenario" class="ml-1 mr-3 text-sm">シナリオ順</label>
+                            <input type="radio" id="sort-character-count" name="sort_mode" value="characterCount"
+                                class="ml-2">
+                            <label for="sort-character-count" class="ml-1 mr-3 text-sm">人数順</label>
+                            <span class="ml-4 text-sm font-semibold text-gray-700">昇順/降順:</span>
+                            <input type="radio" id="sort-asc" name="sort_order" value="asc" checked class="ml-2">
+                            <label for="sort-asc" class="ml-1 mr-3 text-sm">昇順</label>
+                            <input type="radio" id="sort-desc" name="sort_order" value="desc" class="ml-2">
+                            <label for="sort-desc" class="ml-1 text-sm">降順</label>
+                        </div>
+                        <!-- 1ページ表示数 -->
+                        <div class="mb-4 flex items-center">
+                            <span class="text-sm font-semibold text-gray-700 mr-2">1ページ表示数:</span>
+                            <input type="radio" id="page-size-10" name="page_size" value="10" checked class="ml-2">
+                            <label for="page-size-10" class="ml-1 mr-3 text-sm">10</label>
+                            <input type="radio" id="page-size-20" name="page_size" value="20" class="ml-2">
+                            <label for="page-size-20" class="ml-1 mr-3 text-sm">20</label>
+                            <input type="radio" id="page-size-50" name="page_size" value="50" class="ml-2">
+                            <label for="page-size-50" class="ml-1 text-sm">50</label>
+                        </div>
+
+
                         <div class="text-center flex justify-center space-x-4">
-                            <button type="submit" class="accent-color accent-color-hover text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
+                            <button type="button" id="clear-form-btn"
+                                class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
+                                クリア
+                            </button>
+                            <button type="submit"
+                                class="accent-color accent-color-hover text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
                                 検索する
                             </button>
-                            </div>
+                        </div>
                     </form>
                 </div>
 
                 <div id="results-container">
                     <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">
-                        検索結果 
+                        検索結果
                         <span id="search-results-count" class="text-xl text-blue-600 font-bold ml-2"></span>
                     </h2>
                     <div id="results-output" class="space-y-4">
                         <p class="text-gray-500 text-center py-8">ここに検索結果が表示されます。</p>
                     </div>
                     <div id="pagination-controls" class="flex justify-center items-center space-x-4 mt-6">
-                        <button id="prev-page-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-transform transform hover:scale-105">前へ</button>
+                        <button id="prev-page-btn"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-transform transform hover:scale-105">前へ</button>
                         <span id="page-info" class="text-lg font-semibold text-gray-700">1 / 1</span>
-                        <button id="next-page-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-transform transform hover:scale-105">次へ</button>
+                        <button id="next-page-btn"
+                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full transition-transform transform hover:scale-105">次へ</button>
                     </div>
                 </div>
             </div>
 
             <div id="character-detail-container" class="hidden bg-white p-6 rounded-lg shadow-md">
-                <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">シナリオ詳細: <span id="detail-scenario-name"></span></h2>
+                <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">シナリオ詳細: <span
+                        id="detail-scenario-name"></span></h2>
                 <div id="detail-scenario-path" class="text-gray-600 mb-4"></div>
-                
+
                 <h3 class="text-xl font-semibold text-gray-700 mb-3">登場キャラクター</h3>
                 <ul id="detail-character-list" class="list-disc list-inside space-y-2 text-gray-700">
-                    </ul>
+                </ul>
 
                 <h3 class="text-xl font-semibold text-gray-700 mt-6 mb-3">備考</h3>
                 <div id="detail-note" class="bg-gray-50 p-3 rounded-md border border-gray-200 text-gray-700">
-                    </div>
+                </div>
 
                 <div class="text-center mt-8">
-                    <button id="back-to-search-btn" class="accent-color accent-color-hover text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
+                    <button id="back-to-search-btn"
+                        class="accent-color accent-color-hover text-white font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
                         検索結果に戻る
                     </button>
                 </div>
             </div>
 
-            </main>
+        </main>
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- データ定義 ---
-        const majorCategories = [
-            { code: 'MAIN_STORY_PART1', name: '第一部メインストーリー'},
-            { code: 'MAIN_STORY_PART2', name: '第二部メインストーリー'},
-            { code: 'MAIN_STORY_PART3', name: '第三部メインストーリー'},
-            { code: 'MAIN_STORY_PART4', name: '第四部メインストーリー'},
-            { code: 'MAIN_STORY_PART5', name: '第五部メインストーリー'},
-            { code: 'KIZUNA_NO_KISEKI', name: '絆の軌跡'},
-            { code: 'DENSHO_HEN', name: '伝承篇'},
-            { code: 'GRAND_SAGA', name: 'グランドサーガ'},
-            { code: 'SECRET_QUEST', name: 'シークレットクエスト'},
-            { code: 'SIDE_STORY_PART4', name: '第四部サイドストーリー'},
-            { code: 'ANOMALY_QUEST', name: '異変クエスト'},
-            { code: 'GAIDEN', name: '外伝'},
-            { code: 'EVENT_TOUHA', name: '踏破型イベント'},
-            { code: 'EVENT_DAISYURYO', name: '大狩猟戦イベント'},
-            { code: 'EVENT_KYOTEKI', name: '脅敵襲来イベント'},
-            { code: 'CHAIN_STORY', name: 'チェインストーリー'},
-            { code: 'EVENT_QUEST', name: 'イベントクエスト'},
-            { code: 'COLLAB_QUEST', name: 'コラボクエスト'},
-            { code: 'COLLAB_GAIDEN', name: 'コラボ外伝'},
-            { code: 'FREE_QUEST', name: 'フリークエスト'},
-            { code: 'CHARACTER_QUEST', name: 'キャラクエ'},
-            { code: 'OTHER', name: 'その他'}
-        ];
-
-        // カテゴリコードを数値IDにマッピング
-        const categoryMapping = {
-            'MAIN_STORY_PART1': 1,
-            'MAIN_STORY_PART2': 2,
-            'MAIN_STORY_PART3': 3,
-            'MAIN_STORY_PART4': 4,
-            'MAIN_STORY_PART5': 5,
-            'KIZUNA_NO_KISEKI': 6,
-            'DENSHO_HEN': 7,
-            'GRAND_SAGA': 8,
-            'SECRET_QUEST': 9,
-            'SIDE_STORY_PART4': 10,
-            'ANOMALY_QUEST': 11,
-            'GAIDEN': 12,
-            'EVENT_TOUHA': 13,
-            'EVENT_DAISYURYO': 14,
-            'EVENT_KYOTEKI': 15,
-            'CHAIN_STORY': 16,
-            'EVENT_QUEST': 17,
-            'COLLAB_QUEST': 18,
-            'COLLAB_GAIDEN': 19,
-            'FREE_QUEST': 20,
-            'CHARACTER_QUEST': 21,
-            'OTHER': 99 // その他は最後に
-        };
-
-        // シナリオデータを格納する配列
-        let scenarios = [];
-
-        // --- ページング関連の状態変数 ---
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let filteredScenarios = [];
-
-        // --- 検索状態保持用変数 ---
-        let lastCharacterNamesInput = '';
-        let lastNoteKeywordsInput = ''; // 備考キーワード入力
-        let lastSearchMode = 'AND';
-        let lastNotCharacterNamesInput = '';
-        let lastNotSearchMode = 'NOT_AND';
-        let lastSelectedCategoryCodes = [];
-        let lastFilteredScenarios = [];
-        let lastCurrentPage = 1;
-        let lastClickedScenarioDivId = null; // クリックされたシナリオ要素のIDを保持
-
-        // --- DOM要素 ---
-        const mainSearchView = document.getElementById('main-search-view');
-        const form = document.getElementById('search-form');
-        const characterInput = document.getElementById('character-name-input');
-        const noteKeywordsInput = document.getElementById('note-keywords-input'); // 備考キーワード入力
-        const categoryCheckboxesContainer = document.getElementById('category-checkboxes');
-        const resultsOutput = document.getElementById('results-output');
-        const searchResultsCountSpan = document.getElementById('search-results-count'); // 検索結果件数表示用
-        const searchContainer = document.getElementById('search-container');
-        const resultsContainer = document.getElementById('results-container');
-        const characterDetailContainer = document.getElementById('character-detail-container');
-        const detailScenarioName = document.getElementById('detail-scenario-name');
-        const detailScenarioPath = document.getElementById('detail-scenario-path');
-        const detailCharacterList = document.getElementById('detail-character-list');
-        const detailNote = document.getElementById('detail-note'); // 備考表示要素
-        const backToSearchBtn = document.getElementById('back-to-search-btn');
-        const loadingOverlay = document.getElementById('loading-overlay'); // ローディングオーバーレイ
-
-        // Pagination elements
-        const paginationControls = document.getElementById('pagination-controls');
-        const prevPageBtn = document.getElementById('prev-page-btn'); 
-        const nextPageBtn = document.getElementById('next-page-btn');
-        const pageInfoSpan = document.getElementById('page-info');
-
-        // NOT Search elements
-        const toggleNotSearchBtn = document.getElementById('toggle-not-search-btn');
-        const notSearchOptionsDiv = document.getElementById('not-search-options');
-        const notCharacterNameInput = document.getElementById('not-character-name-input');
-
-        // CSVファイルを読み込み、JSONオブジェクトの配列に変換する
-        // このCSVパーサーは、ダブルクォーテーションで囲まれたフィールド（内部カンマやエスケープされたダブルクォーテーションを含む）
-        // および、ダブルクォーテーションで囲まれていないフィールドの両方を処理できます。
-        async function loadDataFromCsv(filePath) {
-            try {
-                const response = await fetch(filePath);
-                if (!response.ok) {
-                    throw new Error(`ファイルの読み込みに失敗しました: ${filePath} (${response.status} ${response.statusText})`);
-                }
-                const text = await response.text();
-                
-                const lines = text.trim().split('\n');
-                // ヘッダーからダブルクォーテーションを削除して、純粋な名前を取得
-                const headers = lines[0].split(',').map(header => header.trim().replace(/"/g, '')); 
-                
-                const parsedScenarios = lines.slice(1).map(line => {
-                    const obj = {};
-                    const values = [];
-                    let inQuote = false;
-                    let currentField = '';
-
-                    for (let i = 0; i < line.length; i++) {
-                        const char = line[i];
-
-                        if (char === '"') {
-                            if (inQuote && i + 1 < line.length && line[i+1] === '"') {
-                                // エスケープされたクォーテーション: "" -> "
-                                currentField += '"';
-                                i++; // 次のクォーテーションをスキップ
-                            } else {
-                                // クォーテーションの状態を切り替え
-                                inQuote = !inQuote;
-                            }
-                        } else if (char === ',' && !inQuote) {
-                            // フィールドの終わり
-                            values.push(currentField.trim());
-                            currentField = '';
-                        } else {
-                            // 通常の文字
-                            currentField += char;
-                        }
-                    }
-                    values.push(currentField.trim()); // 最後のフィールドを追加
-
-                    // ヘッダーと値のペアをオブジェクトにマッピング
-                    headers.forEach((header, index) => {
-                        obj[header] = values[index] !== undefined ? values[index] : null;
-                    });
-                    
-                    // idとorderは数値としてパースする
-                    if (obj.id) obj.id = parseInt(obj.id);
-                    if (obj.order) obj.order = parseInt(obj.order);
-
-                    // 新しいソート順列の列をパース
-                    if (obj.lv1_order) obj.lv1_order = parseInt(obj.lv1_order); else obj.lv1_order = null;
-                    if (obj.lv2_order) obj.lv2_order = parseInt(obj.lv2_order); else obj.lv2_order = null;
-                    if (obj.lv3_order) obj.lv3_order = parseInt(obj.lv3_order); else obj.lv3_order = null;
-
-                    // catCodeを数値IDに変換
-                    if (obj.catCode && categoryMapping[obj.catCode]) {
-                        obj.catCodeId = categoryMapping[obj.catCode];
-                    } else {
-                        obj.catCodeId = 999; // マッピングにない場合は大きな数値を入れておく
-                    }
-
-                    // CSVヘッダーの 'charalist' と 'biko' を参照し、新しいプロパティに割り当てる
-                    // これらのプロパティが存在しない場合に備えて空文字列をデフォルト値とする
-                    obj.characters = (obj.charalist || '').split(/[,、]/).map(char => char.trim()).filter(char => char);
-                    obj.note = (obj.biko || '').replace(/_NL_/g, '\n');
-                
-                    // ユニークIDを生成: catCode + originalId
-                    // これにより、異なるCSVファイルに同じidが存在しても、一意の識別子が得られる
-                    obj.uniqueId = `${obj.catCode}-${obj.id}`;
-
-                    // 元のプロパティは削除する（任意ですが、一貫性のため維持）
-                    delete obj.charalist;
-                    delete obj.biko;
-                    
-                    return obj;
-                });
-                return parsedScenarios;
-
-            } catch (error) {
-                console.error('データの読み込み中にエラーが発生しました:', error);
-                const errorMessage = 'データの読み込み中にエラーが発生しました。コンソールを確認してください。';
-                if (typeof showCustomAlert === 'function') {
-                    showCustomAlert(errorMessage);
-                } else {
-                    console.error(errorMessage);
-                }
-                return [];
-            }
-        }
-
-        // 複数のCSVファイルを読み込み、結合する関数
-        async function loadAllScenarioData() {
-            showLoadingOverlay();
-            let allScenarios = [];
-            
-            // 仮のCSVファイルパスのリスト。実際にはサーバーサイドで動的に取得する必要があります。
-            // 今回は既存のscenario.csvを複数カテゴリに分割したと仮定し、
-            // そのファイル名規則に従ってパスを生成します。
-            // 例: data/MAIN_STORY_PART1.csv, data/CHARACTER_QUEST.csv など
-            const csvFileNames = majorCategories.map(cat => `${cat.code}.csv`);
-            //csvFileNames.push('scenario.csv'); // 既存のscenario.csvも読み込む場合
-            
-            for (const fileName of csvFileNames) {
-                try {
-                    const data = await loadDataFromCsv(`data/${fileName}`);
-                    allScenarios = allScenarios.concat(data);
-                } catch (error) {
-                    console.warn(`ファイル 'data/${fileName}' の読み込みをスキップしました:`, error.message);
-                    // ファイルが存在しない場合やエラーが発生した場合でも処理を続行
-                }
-            }
-            hideLoadingOverlay();
-            return allScenarios;
-        }
-
-
-        // --- 初期化処理 ---
-        async function initialize() {
-            // DOM要素の定義を先頭に移動
-            const toggleAllCheckboxesBtn = document.getElementById('toggle-all-checkboxes-btn');
-
-            categoryCheckboxesContainer.innerHTML = majorCategories.map(cat => `
-                <div class="flex items-center">
-                    <input type="checkbox" id="cat-${cat.code}" value="${cat.code}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
-                    <label for="cat-${cat.code}" class="ml-2 block text-sm text-gray-900">${cat.name}</label>
-                </div>
-            `).join('');
-
-            // すべてのシナリオデータを読み込む
-            scenarios = await loadAllScenarioData();
-
-            // シナリオをソート（catCodeId, lv1, lv2, lv3, order の順）
-            scenarios.sort((scenarioA, scenarioB) => {
-                // 1. catCodeId で比較 (最優先)
-                if (scenarioA.catCodeId !== scenarioB.catCodeId) {
-                    return scenarioA.catCodeId - scenarioB.catCodeId;
-                }
-
-                // ヘルパー関数: ソート順列のみで比較。数値でない場合は等しいとみなす
-                const compareOnlySortOrder = (orderValA, orderValB) => {
-                    const isOrderANum = typeof orderValA === 'number' && !isNaN(orderValA);
-                    const isOrderBNum = typeof orderValB === 'number' && !isNaN(orderValB);
-
-                    if (isOrderANum && isOrderBNum) {
-                        return orderValA - orderValB; // 両方数値なら数値比較
-                    } else if (!isOrderANum && !isOrderBNum) {
-                        return 0; // 両方数値でない場合、等しいとみなして次の比較へ進む
-                    } else if (isOrderANum) {
-                        return -1; // Aのみ数値ならAが先
-                    } else { // isOrderBNum
-                        return 1; // Bのみ数値ならBが先
-                    }
-                };
-
-                let comparisonResult;
-
-                // 2. lv1_order のみで比較
-                comparisonResult = compareOnlySortOrder(scenarioA.lv1_order, scenarioB.lv1_order);
-                if (comparisonResult !== 0) return comparisonResult;
-
-                // 3. lv2_order のみで比較
-                comparisonResult = compareOnlySortOrder(scenarioA.lv2_order, scenarioB.lv2_order);
-                if (comparisonResult !== 0) return comparisonResult;
-
-                // 4. lv3_order のみで比較
-                comparisonResult = compareOnlySortOrder(scenarioA.lv3_order, scenarioB.lv3_order);
-                if (comparisonResult !== 0) return comparisonResult;
-
-                // 最終的にorderで比較
-                return scenarioA.order - scenarioB.order;
-            });
-
-            
-            form.addEventListener('submit', handleSearch);
-            backToSearchBtn.addEventListener('click', hideCharacterDetails);
-            
-            prevPageBtn.addEventListener('click', goToPrevPage);
-            nextPageBtn.addEventListener('click', goToNextPage);
-
-            toggleNotSearchBtn.addEventListener('click', () => {
-                notSearchOptionsDiv.classList.toggle('hidden');
-            });
-            // ここでDOM要素が定義されているため、イベントリスナーを設定
-            if (toggleAllCheckboxesBtn) { // Safety check
-                toggleAllCheckboxesBtn.addEventListener('click', toggleAllCheckboxes);
-            }
-
-            // 画面起動時の検索結果初期表示は行わない
-            displayMessage('ここに検索結果が表示されます。'); // 初期メッセージを表示
-            updatePaginationControls(0, 0); // 初期状態は0件でページングコントロールを更新
-        }
-
-        function showLoadingOverlay() {
-            loadingOverlay.classList.remove('hidden');
-        }
-
-        function hideLoadingOverlay() {
-            loadingOverlay.classList.add('hidden');
-        }
-
-        function showMainSearchView() {
-            mainSearchView.classList.remove('hidden');
-            characterDetailContainer.classList.add('hidden');
-        }
-
-        function showCharacterDetails(uniqueId) {
-            mainSearchView.classList.add('hidden');
-            characterDetailContainer.classList.remove('hidden');
-
-            const scenario = scenarios.find(s => s.uniqueId === uniqueId);
-            if (!scenario) {
-                displayMessage('シナリオが見つかりませんでした。');
-                return;
-            }
-
-            const charactersInScenario = scenario.characters || [];
-            const category = majorCategories.find(cat => cat.code === scenario.catCode);
-            const path = [
-                category ? category.name : '',
-                scenario.lv1,
-                scenario.lv2,
-                scenario.lv3
-            ].filter(Boolean).join(' > ');
-
-            detailScenarioName.textContent = scenario.name;
-            detailScenarioPath.textContent = path;
-            detailCharacterList.innerHTML = charactersInScenario.length > 0
-                ? charactersInScenario.map(char => `<li>${char}</li>`).join('')
-                : '<li>登場キャラクターはいません。</li>';
-            
-            detailNote.textContent = scenario.note || '備考はありません。';
-        }
-
-        function hideCharacterDetails() {
-            showMainSearchView();
-            characterInput.value = lastCharacterNamesInput;
-            noteKeywordsInput.value = lastNoteKeywordsInput;
-            
-            // 検索モードのラジオボタンの状態を復元
-            const searchModeRadio = document.querySelector(`input[name="search_mode"][value="${lastSearchMode}"]`); 
-            if (searchModeRadio) searchModeRadio.checked = true; 
-            
-            // NOT検索モードのラジオボタンの状態を復元
-            const notSearchModeRadio = document.querySelector(`input[name="not_search_mode"][value="${lastNotSearchMode}"]`); 
-            if (notSearchModeRadio) notSearchModeRadio.checked = true; 
-            
-            if (lastNotCharacterNamesInput) {
-                notSearchOptionsDiv.classList.remove('hidden');
-            } else {
-                notSearchOptionsDiv.classList.add('hidden');
-            }
-
-            categoryCheckboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.checked = lastSelectedCategoryCodes.includes(checkbox.value);
-            });
-
-            filteredScenarios = lastFilteredScenarios;
-            currentPage = lastCurrentPage;
-            displayPaginatedResults();
-            
-            // 以前開いていたシナリオの位置にスクロール
-            if (lastClickedScenarioDivId) {
-                const targetElement = document.getElementById(lastClickedScenarioDivId);
-                if (targetElement) {
-                    targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
-                }
-            }
-        }
-
-        function toggleAllCheckboxes() {
-            const allCheckboxes = document.querySelectorAll('#category-checkboxes input[type="checkbox"]');
-            let isAnyChecked = Array.from(allCheckboxes).some(cb => cb.checked);
-
-            allCheckboxes.forEach(checkbox => {
-                checkbox.checked = !isAnyChecked;
-            });
-        }
-
-        function handleSearch(event) {
-            event.preventDefault();
-
-            lastCharacterNamesInput = characterInput.value.trim();
-            lastNoteKeywordsInput = noteKeywordsInput.value.trim();
-            lastSearchMode = document.querySelector('input[name="search_mode"]:checked').value;
-            lastNotCharacterNamesInput = notCharacterNameInput.value.trim();
-            lastNotSearchMode = document.querySelector('input[name="not_search_mode"]:checked').value;
-            lastSelectedCategoryCodes = Array.from(categoryCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value);
-
-
-            const characterNames = lastCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0);
-            const notCharacterNames = lastNotCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0);
-            const noteSearchString = noteKeywordsInput.value.trim(); // noteKeywordsInput.value を直接参照
-
-            if (characterNames.length === 0 && notCharacterNames.length === 0 && noteSearchString.length === 0 && lastSelectedCategoryCodes.length === 0) {
-                // 検索条件がすべて空の場合は、全件表示に戻す
-                filteredScenarios = [...scenarios];
-                displayPaginatedResults();
-                return;
-            }
-
-
-            let currentFilteredScenarios = scenarios.filter(scenario => {
-                let isCharacterMatch = true;
-                if (characterNames.length > 0) {
-                    if (lastSearchMode === 'OR') {
-                        isCharacterMatch = scenario.characters && scenario.characters.some(char => characterNames.some(query => char.includes(query)));
-                    } else { // AND
-                        isCharacterMatch = scenario.characters && characterNames.every(query => 
-                            scenario.characters.some(char => char.includes(query))
-                        );
-                    }
-                }
-
-                let isNotCharacterMatch = true;
-                if (notCharacterNames.length > 0) {
-                    if (lastNotSearchMode === 'NOT_OR') { // NOT OR: 指定された文字のどれも含まない
-                        isNotCharacterMatch = !notCharacterNames.some(query => 
-                            scenario.characters && scenario.characters.some(char => char.includes(query))
-                        );
-                    } else { // NOT AND: 指定された文字の全ては含まない（いずれか一つでも含まなければOK）
-                        isNotCharacterMatch = !notCharacterNames.every(query => 
-                            scenario.characters && scenario.characters.some(char => char.includes(query))
-                        );
-                    }
-                }
-
-                let isNoteMatch = true;
-                if (noteSearchString.length > 0) {
-                    // noteSearchStringが空でない場合のみフィルタリング
-                    isNoteMatch = scenario.note && scenario.note.includes(noteSearchString);
-                }
-
-                const isCategoryMatch = lastSelectedCategoryCodes.length === 0 || 
-                                        lastSelectedCategoryCodes.some(code => {
-                                            return typeof code === 'string' && code && 
-                                                   typeof scenario.catCode === 'string' && scenario.catCode && 
-                                                   scenario.catCode.trim() === code.trim();
-                                        });
-
-
-                return isCharacterMatch && isNotCharacterMatch && isNoteMatch && isCategoryMatch;
-            });
-           
-            filteredScenarios = currentFilteredScenarios;
-            lastFilteredScenarios = filteredScenarios;
-            currentPage = 1;
-            lastCurrentPage = 1;
-
-            displayPaginatedResults();
-        }
-
+        // 分離JSの関数を利用して初期化
+        // 検索結果表示・ページング・メッセージ表示のグローバル関数
         function displayPaginatedResults() {
-            const totalPages = Math.ceil(filteredScenarios.length / itemsPerPage);
-            
-            if (filteredScenarios.length === 0) {
+            const totalPages = Math.ceil(window.filteredScenarios.length / window.itemsPerPage);
+            if (window.filteredScenarios.length === 0) {
                 displayMessage('指定された条件に一致するシナリオは見つかりませんでした。');
                 updatePaginationControls(0, 0);
-                searchResultsCountSpan.textContent = `(${0}件)`; // 検索件数を0に更新
+                document.getElementById('search-results-count').textContent = `(${0}件)`;
                 return;
             }
-
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedResults = filteredScenarios.slice(startIndex, endIndex);
-
+            const startIndex = (window.currentPage - 1) * window.itemsPerPage;
+            const endIndex = startIndex + window.itemsPerPage;
+            const paginatedResults = window.filteredScenarios.slice(startIndex, endIndex);
+            const resultsOutput = document.getElementById('results-output');
             resultsOutput.innerHTML = paginatedResults.map(scenario => {
                 const category = majorCategories.find(cat => cat.code === scenario.catCode);
-                const path = [
-                    category ? category.name : '',
+                const path = [category ? category.name : '', scenario.lv1, scenario.lv2, scenario.lv3].filter(Boolean).join(' > ');
+                const characterCount = scenario.characters ? scenario.characters.length : 0;
+                const hasNote = scenario.note && scenario.note.trim().length > 0;
+                const balloonIcon = hasNote ? `<span title="備考あり" style="display:inline-block;vertical-align:middle;margin-left:4px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 20 20" fill="#38bdf8" style="vertical-align:middle;"><path d="M2 3.5A2.5 2.5 0 0 1 4.5 1h11A2.5 2.5 0 0 1 18 3.5v9A2.5 2.5 0 0 1 15.5 15H6.914l-3.207 3.207A1 1 0 0 1 2 17.5V3.5z"/></svg></span>` : '';
+                return `<div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm result-item" id="scenario-item-${scenario.uniqueId}"><p class="text-sm text-gray-600 mt-1">${path}</p><strong class="text-lg" data-scenario-id="${scenario.uniqueId}">${scenario.name}</strong> <span class="text-sm text-gray-500 ml-2">(${characterCount}人)${balloonIcon}</span></div>`;
+            }).join('');
+            resultsOutput.querySelectorAll('.result-item strong').forEach(element => {
+                element.addEventListener('click', (event) => {
+                    const uniqueId = event.target.dataset.scenarioId;
+                    window.lastClickedScenarioDivId = `scenario-item-${uniqueId}`;
+                    // 詳細画面表示処理
+                    showDetailInPage(uniqueId);
+                });
+            });
+            // scenario.html内の詳細画面表示部を使って詳細を表示
+            function showDetailInPage(uniqueId) {
+                const scenario = window.scenarios.find(s => s.uniqueId === uniqueId);
+                if (!scenario) return;
+                document.getElementById('main-search-view').classList.add('hidden');
+                const detailContainer = document.getElementById('character-detail-container');
+                detailContainer.classList.remove('hidden');
+                document.getElementById('detail-scenario-name').textContent = scenario.name;
+                document.getElementById('detail-scenario-path').textContent = [
+                    (majorCategories.find(cat => cat.code === scenario.catCode)?.name || ''),
                     scenario.lv1,
                     scenario.lv2,
                     scenario.lv3
                 ].filter(Boolean).join(' > ');
-                
-                // 登場キャラクター数を取得
-                const characterCount = scenario.characters ? scenario.characters.length : 0;
-
-                return `
-                    <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm result-item" id="scenario-item-${scenario.uniqueId}">
-                        <strong class="text-lg" data-scenario-id="${scenario.uniqueId}">${scenario.name}</strong> 
-                        <span class="text-sm text-gray-500 ml-2">(${characterCount}人)</span>
-                        <p class="text-sm text-gray-600 mt-1">${path}</p>
-                    </div>
-                `;
-            }).join('');
-
-            resultsOutput.querySelectorAll('.result-item strong').forEach(element => {
-                element.addEventListener('click', (event) => {
-                    const uniqueId = event.target.dataset.scenarioId;
-                    lastClickedScenarioDivId = `scenario-item-${uniqueId}`; // クリックされた要素のIDを保存
-                    showCharacterDetails(uniqueId);
-                });
+                const charList = scenario.characters && scenario.characters.length > 0
+                    ? scenario.characters.map(char => `<li>${char}</li>`).join('')
+                    : '<li>登場キャラクター未登録</li>';
+                document.getElementById('detail-character-list').innerHTML = charList;
+                document.getElementById('detail-note').textContent = scenario.note || '備考はありません。';
+                window.scrollTo(0, 0);
+            }
+            // 戻るボタンで検索一覧に戻る
+            document.addEventListener('DOMContentLoaded', () => {
+                const backBtn = document.getElementById('back-to-search-btn');
+                if (backBtn) {
+                    backBtn.addEventListener('click', function () {
+                        document.getElementById('character-detail-container').classList.add('hidden');
+                        document.getElementById('main-search-view').classList.remove('hidden');
+                        // 検索結果の位置復元
+                        if (window.lastClickedScenarioDivId) {
+                            const targetElement = document.getElementById(window.lastClickedScenarioDivId);
+                            if (targetElement) {
+                                targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+                            }
+                        }
+                    });
+                }
             });
-
-            updatePaginationControls(currentPage, totalPages);
-            searchResultsCountSpan.textContent = `(${filteredScenarios.length}件)`; // 検索件数を更新
+            document.getElementById('search-results-count').textContent = `(${window.filteredScenarios.length}件)`;
+            updatePaginationControls(window.currentPage, totalPages);
         }
-        
+
         function displayMessage(message) {
-             resultsOutput.innerHTML = `<p class="text-gray-500 text-center py-8">${message}</p>`;
+            document.getElementById('results-output').innerHTML = `<p class="text-gray-500 text-center py-8">${message}</p>`;
         }
 
         function updatePaginationControls(current, total) {
-            pageInfoSpan.textContent = `${current} / ${total}`;
-            prevPageBtn.disabled = current <= 1;
-            nextPageBtn.disabled = current >= total;
+            document.getElementById('page-info').textContent = `${current} / ${total}`;
+            document.getElementById('prev-page-btn').disabled = current <= 1;
+            document.getElementById('next-page-btn').disabled = current >= total;
         }
 
-        function goToPrevPage() {
-            if (currentPage > 1) {
-                currentPage--;
-                lastCurrentPage = currentPage;
-                displayPaginatedResults();
+        async function initialize() {
+            // クリアボタンのイベント設定
+            const clearFormBtn = document.getElementById('clear-form-btn');
+            if (clearFormBtn) {
+                clearFormBtn.addEventListener('click', function () {
+                    document.getElementById('character-name-input').value = '';
+                    document.getElementById('quest-name-input').value = '';
+                    document.getElementById('note-keywords-input').value = '';
+                    document.getElementById('not-character-name-input').value = '';
+                    document.getElementById('note-exists-only').checked = false;
+                    document.getElementById('sort-scenario').checked = true;
+                    document.getElementById('sort-asc').checked = true;
+                    document.getElementById('page-size-10').checked = true;
+                    document.getElementsByName('character_search_mode')[0].checked = true;
+                    document.getElementsByName('quest_search_mode')[1].checked = true;
+                    document.getElementsByName('not_character_search_mode')[1].checked = true;
+                    // カテゴリ全選択
+                    const categoryCheckboxes = document.querySelectorAll('#category-checkboxes input[type="checkbox"]');
+                    categoryCheckboxes.forEach(cb => cb.checked = true);
+                    // 検索結果初期化
+                    window.filteredScenarios = [];
+                    window.currentPage = 1;
+                    displayMessage('ここに検索結果が表示されます。');
+                    updatePaginationControls(0, 0);
+                    document.getElementById('search-results-count').textContent = '';
+                });
             }
-        }
+            // 備考ありのみ検索チェックボックス
+            const noteExistsOnlyCheckbox = document.getElementById('note-exists-only');
+            // 並び順ラジオ
+            const sortModeRadios = document.getElementsByName('sort_mode');
+            const sortOrderRadios = document.getElementsByName('sort_order');
+            // 1ページ表示数ラジオ
+            const pageSizeRadios = document.getElementsByName('page_size');
+            // DOM要素取得
+            const mainSearchView = document.getElementById('main-search-view');
+            const form = document.getElementById('search-form');
+            const characterInput = document.getElementById('character-name-input');
+            const noteKeywordsInput = document.getElementById('note-keywords-input');
+            const categoryCheckboxesContainer = document.getElementById('category-checkboxes');
+            const resultsOutput = document.getElementById('results-output');
+            const searchResultsCountSpan = document.getElementById('search-results-count');
+            const searchContainer = document.getElementById('search-container');
+            const resultsContainer = document.getElementById('results-container');
+            const characterDetailContainer = document.getElementById('character-detail-container');
+            const detailScenarioName = document.getElementById('detail-scenario-name');
+            const detailScenarioPath = document.getElementById('detail-scenario-path');
+            const detailCharacterList = document.getElementById('detail-character-list');
+            const detailNote = document.getElementById('detail-note');
+            const backToSearchBtn = document.getElementById('back-to-search-btn');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const paginationControls = document.getElementById('pagination-controls');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+            const pageInfoSpan = document.getElementById('page-info');
+            const toggleotherSearchBtn = document.getElementById('toggle-other-search-btn');
+            const otherSearchOptionsDiv = document.getElementById('other-search-options');
+            const notCharacterNameInput = document.getElementById('not-character-name-input');
 
-        function goToNextPage() {
-            const totalPages = Math.ceil(filteredScenarios.length / itemsPerPage);
-            if (currentPage < totalPages) {
-                currentPage++;
-                lastCurrentPage = currentPage;
-                displayPaginatedResults();
+            // カテゴリチェックボックス生成
+            categoryCheckboxesContainer.innerHTML = majorCategories.map(cat => `
+            <div class="flex items-center">
+                <input type="checkbox" id="cat-${cat.code}" value="${cat.code}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                <label for="cat-${cat.code}" class="ml-2 block text-sm text-gray-900">${cat.name}</label>
+            </div>
+        `).join('');
+
+            // 全選択/全解除ボタンのイベント設定
+            const toggleAllCheckboxesBtn = document.getElementById('toggle-all-checkboxes-btn');
+            if (toggleAllCheckboxesBtn) {
+                toggleAllCheckboxesBtn.addEventListener('click', function () {
+                    const allCheckboxes = categoryCheckboxesContainer.querySelectorAll('input[type="checkbox"]');
+                    const isAnyChecked = Array.from(allCheckboxes).some(cb => cb.checked);
+                    allCheckboxes.forEach(checkbox => {
+                        checkbox.checked = !isAnyChecked;
+                    });
+                });
             }
+
+            // データロード
+            window.scenarios = await loadAllScenarioData();
+
+            // ページング・検索状態
+            window.currentPage = 1;
+            window.itemsPerPage = 10;
+            window.filteredScenarios = [];
+            window.lastCharacterNamesInput = '';
+            window.lastNoteKeywordsInput = '';
+            window.lastSearchMode = 'AND';
+            window.lastNotCharacterNamesInput = '';
+            window.lastNotSearchMode = 'NOT_AND';
+            window.lastSelectedCategoryCodes = [];
+            window.lastFilteredScenarios = [];
+            window.lastCurrentPage = 1;
+            window.lastClickedScenarioDivId = null;
+
+            // イベント設定
+            form.addEventListener('submit', async function (event) {
+                // 備考ありのみ検索
+                const noteExistsOnly = noteExistsOnlyCheckbox && noteExistsOnlyCheckbox.checked;
+                // 並び順
+                let sortMode = 'scenario';
+                sortModeRadios.forEach(radio => { if (radio.checked) sortMode = radio.value; });
+                let sortOrder = 'asc';
+                sortOrderRadios.forEach(radio => { if (radio.checked) sortOrder = radio.value; });
+                // 1ページ表示数
+                let pageSize = 10;
+                pageSizeRadios.forEach(radio => { if (radio.checked) pageSize = parseInt(radio.value); });
+                window.itemsPerPage = pageSize;
+                event.preventDefault();
+                window.lastCharacterNamesInput = characterInput.value.trim();
+                window.lastNoteKeywordsInput = noteKeywordsInput.value.trim();
+                window.lastSearchMode = document.querySelector('input[name="character_search_mode"]:checked').value;
+                window.lastNotCharacterNamesInput = notCharacterNameInput.value.trim();
+                window.lastNotSearchMode = document.querySelector('input[name="not_character_search_mode"]:checked').value;
+                window.lastSelectedCategoryCodes = Array.from(categoryCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value);
+                const questNameInput = document.getElementById('quest-name-input');
+                const questNameSearchString = questNameInput ? questNameInput.value.trim() : '';
+                const questSearchMode = document.querySelector('input[name="quest_search_mode"]:checked')?.value || 'AND';
+                const options = {
+                    noteExistsOnly,
+                    sortMode,
+                    sortOrder,
+                    characterNames: window.lastCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0),
+                    notCharacterNames: window.lastNotCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0),
+                    noteSearchString: window.lastNoteKeywordsInput,
+                    questNameSearchString,
+                    questSearchMode,
+                    lastSearchMode: window.lastSearchMode,
+                    lastNotSearchMode: window.lastNotSearchMode,
+                    lastSelectedCategoryCodes: window.lastSelectedCategoryCodes
+                };
+                window.filteredScenarios = filterScenarios(window.scenarios, options);
+                // 備考ありのみ抽出
+                if (noteExistsOnly) {
+                    window.filteredScenarios = window.filteredScenarios.filter(s => s.note && s.note.trim().length > 0);
+                }
+                // 並び順
+                if (sortMode === 'scenario') {
+                    window.filteredScenarios.sort((a, b) => {
+                        // categoryMapping > lv1_order > lv2_order > lv3_order > order
+                        const catA = categoryMapping[a.catCode] || 999;
+                        const catB = categoryMapping[b.catCode] || 999;
+                        if (catA !== catB) return sortOrder === 'asc' ? catA - catB : catB - catA;
+                        const lv1A = (typeof a.lv1_order === 'number') ? a.lv1_order : parseInt(a.lv1_order, 10);
+                        const lv1B = (typeof b.lv1_order === 'number') ? b.lv1_order : parseInt(b.lv1_order, 10);
+                        const lv1AVal = isNaN(lv1A) ? 9999 : lv1A;
+                        const lv1BVal = isNaN(lv1B) ? 9999 : lv1B;
+                        if (lv1AVal !== lv1BVal) return sortOrder === 'asc' ? lv1AVal - lv1BVal : lv1BVal - lv1AVal;
+                        const lv2A = (typeof a.lv2_order === 'number') ? a.lv2_order : parseInt(a.lv2_order, 10);
+                        const lv2B = (typeof b.lv2_order === 'number') ? b.lv2_order : parseInt(b.lv2_order, 10);
+                        const lv2AVal = isNaN(lv2A) ? 9999 : lv2A;
+                        const lv2BVal = isNaN(lv2B) ? 9999 : lv2B;
+                        if (lv2AVal !== lv2BVal) return sortOrder === 'asc' ? lv2AVal - lv2BVal : lv2BVal - lv2AVal;
+                        const lv3A = (typeof a.lv3_order === 'number') ? a.lv3_order : parseInt(a.lv3_order, 10);
+                        const lv3B = (typeof b.lv3_order === 'number') ? b.lv3_order : parseInt(b.lv3_order, 10);
+                        const lv3AVal = isNaN(lv3A) ? 9999 : lv3A;
+                        const lv3BVal = isNaN(lv3B) ? 9999 : lv3B;
+                        if (lv3AVal !== lv3BVal) return sortOrder === 'asc' ? lv3AVal - lv3BVal : lv3BVal - lv3AVal;
+                        const orderA = (typeof a.order === 'number') ? a.order : parseInt(a.order, 10);
+                        const orderB = (typeof b.order === 'number') ? b.order : parseInt(b.order, 10);
+                        const orderAVal = isNaN(orderA) ? 9999 : orderA;
+                        const orderBVal = isNaN(orderB) ? 9999 : orderB;
+                        if (orderAVal !== orderBVal) return sortOrder === 'asc' ? orderAVal - orderBVal : orderBVal - orderAVal;
+                        // すべて同じ場合は0
+                        return 0;
+                    });
+                } else if (sortMode === 'characterCount') {
+                    window.filteredScenarios.sort((a, b) => {
+                        const countA = a.characters ? a.characters.length : 0;
+                        const countB = b.characters ? b.characters.length : 0;
+                        return sortOrder === 'asc' ? countA - countB : countB - countA;
+                    });
+                }
+                window.lastFilteredScenarios = window.filteredScenarios;
+                window.currentPage = 1;
+                window.lastCurrentPage = 1;
+                displayPaginatedResults();
+            });
+
+            // ページング
+            prevPageBtn.addEventListener('click', function () {
+                if (window.currentPage > 1) {
+                    window.currentPage--;
+                    window.lastCurrentPage = window.currentPage;
+                    displayPaginatedResults();
+                }
+            });
+            nextPageBtn.addEventListener('click', function () {
+                const totalPages = Math.ceil(window.filteredScenarios.length / window.itemsPerPage);
+                if (window.currentPage < totalPages) {
+                    window.currentPage++;
+                    window.lastCurrentPage = window.currentPage;
+                    displayPaginatedResults();
+                }
+            });
+
+            // 他検索条件切替
+            toggleotherSearchBtn.addEventListener('click', () => {
+                otherSearchOptionsDiv.classList.toggle('hidden');
+            });
+
+            // 戻るボタンで詳細→一覧に戻る
+            if (backToSearchBtn) {
+                backToSearchBtn.addEventListener('click', function () {
+                    characterDetailContainer.classList.add('hidden');
+                    mainSearchView.classList.remove('hidden');
+                    // 検索結果の位置復元
+                    if (window.lastClickedScenarioDivId) {
+                        const targetElement = document.getElementById(window.lastClickedScenarioDivId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+                        }
+                    }
+                });
+            }
+
+            // 初期表示
+            displayMessage('ここに検索結果が表示されます。');
+            updatePaginationControls(0, 0);
         }
-
-        function showCustomAlert(message) {
-            const alertDiv = document.createElement('div');
-            alertDiv.style.cssText = `
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                background-color: #4a5568;
-                color: white;
-                padding: 15px 30px;
-                border-radius: 8px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                z-index: 1000;
-                font-size: 1.1rem;
-                text-align: center;
-            `;
-            alertDiv.textContent = message;
-            document.body.appendChild(alertDiv);
-
-            setTimeout(() => {
-                document.body.removeChild(alertDiv);
-            }, 3000);
-        }
-
+        // 分離JSの関数を利用して初期化
         initialize();
-    });
     </script>
 </body>
+
 </html>
