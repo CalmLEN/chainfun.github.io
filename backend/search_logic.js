@@ -8,7 +8,8 @@ function filterScenarios(scenarios, options) {
         questSearchMode,
         lastSearchMode,
         lastNotSearchMode,
-        lastSelectedCategoryCodes
+        lastSelectedCategoryCodes,
+        lastSelectedBuCodes
     } = options;
 
     return scenarios.filter(scenario => {
@@ -37,6 +38,8 @@ function filterScenarios(scenarios, options) {
 
         const isCategoryMatch = lastSelectedCategoryCodes.length === 0 || lastSelectedCategoryCodes.includes(scenario.catCode);
 
+        const isBuMatch = lastSelectedBuCodes.length === 0 || lastSelectedBuCodes.includes(scenario.bu);
+
         let isQuestNameMatch = true;
         if (questNameSearchString.length > 0) {
             const questKeywords = questNameSearchString.split(/[,、\s]+/).filter(q => q.length > 0);
@@ -48,6 +51,6 @@ function filterScenarios(scenarios, options) {
             }
         }
 
-        return isCharacterMatch && isNotCharacterMatch && isNoteMatch && isCategoryMatch && isQuestNameMatch;
+        return isCharacterMatch && isNotCharacterMatch && isNoteMatch && isCategoryMatch && isBuMatch && isQuestNameMatch;
     });
 }
