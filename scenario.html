@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ピリカの絵日記（シナリオ検索）</title>
+    <title>フィーナの日記（シナリオ検索）</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="backend/data.js"></script>
     <script src="backend/csv_loader.js"></script>
@@ -159,7 +159,7 @@
     <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-4xl">
 
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">ピリカの絵日記</h1>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">フィーナの日記</h1>
             <p class="mt-2 text-gray-500">キャラクター名とシナリオ分類で、登場するシナリオを検索します。</p>
         </header>
 
@@ -254,6 +254,12 @@
 
                             </div>
 
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="block mb-3 text-lg font-semibold text-gray-700">実装時期で絞り込む</h3>
+                            <div id="bu-checkboxes" class="grid grid-cols-4 gap-2">
+                            </div>
                         </div>
 
                         <div class="mb-6">
@@ -429,8 +435,20 @@
 
         function updatePaginationControls(current, total) {
             document.getElementById('page-info').textContent = `${current} / ${total}`;
-            document.getElementById('prev-page-btn').disabled = current <= 1;
-            document.getElementById('next-page-btn').disabled = current >= total;
+            const prevBtn = document.getElementById('prev-page-btn');
+            const nextBtn = document.getElementById('next-page-btn');
+            // 最初のページでは「前へ」非表示
+            if (current <= 1) {
+                prevBtn.style.display = 'none';
+            } else {
+                prevBtn.style.display = '';
+            }
+            // 最後のページでは「次へ」非表示
+            if (current >= total) {
+                nextBtn.style.display = 'none';
+            } else {
+                nextBtn.style.display = '';
+            }
         }
 
         async function initialize() {
@@ -452,6 +470,9 @@
                     // カテゴリ全選択
                     const categoryCheckboxes = document.querySelectorAll('#category-checkboxes input[type="checkbox"]');
                     categoryCheckboxes.forEach(cb => cb.checked = true);
+                    // 「部」全選択
+                    const buCheckboxes = document.querySelectorAll('#bu-checkboxes input[type="checkbox"]');
+                    buCheckboxes.forEach(cb => cb.checked = true);
                     // 検索結果初期化
                     window.filteredScenarios = [];
                     window.currentPage = 1;
@@ -491,12 +512,22 @@
             const toggleotherSearchBtn = document.getElementById('toggle-other-search-btn');
             const otherSearchOptionsDiv = document.getElementById('other-search-options');
             const notCharacterNameInput = document.getElementById('not-character-name-input');
+            const buCheckboxesContainer = document.getElementById('bu-checkboxes');
 
             // カテゴリチェックボックス生成
             categoryCheckboxesContainer.innerHTML = majorCategories.map(cat => `
             <div class="flex items-center">
                 <input type="checkbox" id="cat-${cat.code}" value="${cat.code}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
                 <label for="cat-${cat.code}" class="ml-2 block text-sm text-gray-900">${cat.name}</label>
+            </div>
+        `).join('');
+
+            // 「部」チェックボックス生成
+            const buOptions = ['１～２部', '３部', '４部', '５部'];
+            buCheckboxesContainer.innerHTML = buOptions.map(bu => `
+            <div class="flex items-center">
+                <input type="checkbox" id="bu-${bu}" value="${bu}" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" checked>
+                <label for="bu-${bu}" class="ml-2 block text-sm text-gray-900">${bu}</label>
             </div>
         `).join('');
 
@@ -525,6 +556,7 @@
             window.lastNotCharacterNamesInput = '';
             window.lastNotSearchMode = 'NOT_AND';
             window.lastSelectedCategoryCodes = [];
+            window.lastSelectedBuCodes = [];
             window.lastFilteredScenarios = [];
             window.lastCurrentPage = 1;
             window.lastClickedScenarioDivId = null;
@@ -549,6 +581,7 @@
                 window.lastNotCharacterNamesInput = notCharacterNameInput.value.trim();
                 window.lastNotSearchMode = document.querySelector('input[name="not_character_search_mode"]:checked').value;
                 window.lastSelectedCategoryCodes = Array.from(categoryCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value);
+                window.lastSelectedBuCodes = Array.from(buCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value);
                 const questNameInput = document.getElementById('quest-name-input');
                 const questNameSearchString = questNameInput ? questNameInput.value.trim() : '';
                 const questSearchMode = document.querySelector('input[name="quest_search_mode"]:checked')?.value || 'AND';
@@ -563,7 +596,8 @@
                     questSearchMode,
                     lastSearchMode: window.lastSearchMode,
                     lastNotSearchMode: window.lastNotSearchMode,
-                    lastSelectedCategoryCodes: window.lastSelectedCategoryCodes
+                    lastSelectedCategoryCodes: window.lastSelectedCategoryCodes,
+                    lastSelectedBuCodes: window.lastSelectedBuCodes
                 };
                 window.filteredScenarios = filterScenarios(window.scenarios, options);
                 // 備考ありのみ抽出
