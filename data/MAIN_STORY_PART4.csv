@@ -1,3 +1,3 @@
-id,catCode,lv1,lv1_order,lv2,lv2_order,lv3,lv3_order,name,order,biko,charalist
-1,MAIN_STORY_PART4,"幻獣の世界",1,,,,,"その世界の理",1,,"主人公,ピリカ,アインスロット,ユリアナ,ルイーゼ"
-2,MAIN_STORY_PART4,"遊戯の世界",1,,,,,"夢の国へ",1,,"主人公,ピリカ,メルティオール"
+id,catCode,bu,lv1,lv1_order,lv2,lv2_order,lv3,lv3_order,name,order,biko,charalist
+1,MAIN_STORY_PART4,"４部","幻獣の世界",1,,,,,"その世界の理",1,,"主人公,ピリカ,アインスロット,ユリアナ,ルイーゼ"
+2,MAIN_STORY_PART4,"４部","遊戯の世界",1,,,,,"夢の国へ",1,,"主人公,ピリカ,メルティオール"

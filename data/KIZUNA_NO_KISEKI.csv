@@ -1,2 +1,2 @@
-id,catCode,lv1,lv1_order,lv2,lv2_order,lv3,lv3_order,name,order,biko,charalist
-1,KIZUNA_NO_KISEKI,"罪の大陸篇",1,,,,,"この首を縛るモノ",1,,"ザエル,ヴァレリオ,レオン"
+id,catCode,bu,lv1,lv1_order,lv2,lv2_order,lv3,lv3_order,name,order,biko,charalist
+1,KIZUNA_NO_KISEKI,"３部","罪の大陸篇",1,,,,,"この首を縛るモノ",1,,"ザエル,ヴァレリオ,レオン"

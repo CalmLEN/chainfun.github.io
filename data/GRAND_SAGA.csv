@@ -1,2 +1,2 @@
-id,catCode,lv1,lv1_order,lv2,lv2_order,lv3,lv3_order,name,order,biko,charalist
-1,GRAND_SAGA,"グランドサーガ『聖都篇』",6,,,,,"第一話「聖王国後継」",1,,"ユリアナ,アインスロット,ルイーゼ"
+id,catCode,bu,lv1,lv1_order,lv2,lv2_order,lv3,lv3_order,name,order,biko,charalist
+1,GRAND_SAGA,"３部","グランドサーガ『聖都篇』",6,,,,,"第一話「聖王国後継」",1,,"ユリアナ,アインスロット,ルイーゼ"
