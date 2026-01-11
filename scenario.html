@@ -146,6 +146,51 @@
             white-space: pre-wrap;
             /* 改行を保持して表示 */
         }
+
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin: 0;
+            margin-bottom: 0.75rem;
+        }
+
+        .toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: none;
+            border: none;
+            color: #4a5568;
+            cursor: pointer;
+            font-size: 1.5rem;
+            transition: transform 0.2s ease-in-out;
+            padding: 0;
+        }
+
+        .toggle-btn.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            max-height: 1000px;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+        }
     </style>
 </head>
 
@@ -257,19 +302,27 @@
                         </div>
 
                         <div class="mb-6">
-                            <h3 class="block mb-3 text-lg font-semibold text-gray-700">実装時期で絞り込む</h3>
-                            <div id="bu-checkboxes" class="grid grid-cols-4 gap-2">
+                            <div class="collapsible-header">
+                                <h3 class="collapsible-title">実装時期で絞り込む</h3>
+                                <button type="button" class="toggle-btn bu-toggle-btn" aria-expanded="true">▽</button>
+                            </div>
+                            <div id="bu-checkboxes-content" class="collapsible-content grid grid-cols-4 gap-2">
+                                <div id="bu-checkboxes"></div>
                             </div>
                         </div>
 
                         <div class="mb-6">
-                            <h3 class="block mb-3 text-lg font-semibold text-gray-700">シナリオ分類で絞り込む</h3>
-
-                            <button type="button" id="toggle-all-checkboxes-btn"
-                                class="ml-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-1 px-3 rounded-md transition-transform transform hover:scale-105">
-                                全選択/全解除
-                            </button>
-                            <div id="category-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            <div class="collapsible-header">
+                                <h3 class="collapsible-title">シナリオ分類で絞り込む</h3>
+                                <button type="button" class="toggle-btn category-toggle-btn" aria-expanded="true">▽</button>
+                            </div>
+                            <div id="category-checkboxes-content" class="collapsible-content">
+                                <button type="button" id="toggle-all-checkboxes-btn"
+                                    class="ml-4 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm py-1 px-3 rounded-md transition-transform transform hover:scale-105">
+                                    全選択/全解除
+                                </button>
+                                <div id="category-checkboxes" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                </div>
                             </div>
                         </div>
 
@@ -513,6 +566,26 @@
             const otherSearchOptionsDiv = document.getElementById('other-search-options');
             const notCharacterNameInput = document.getElementById('not-character-name-input');
             const buCheckboxesContainer = document.getElementById('bu-checkboxes');
+            const buContentDiv = document.getElementById('bu-checkboxes-content');
+            const categoryContentDiv = document.getElementById('category-checkboxes-content');
+            const buToggleBtn = document.querySelector('.bu-toggle-btn');
+            const categoryToggleBtn = document.querySelector('.category-toggle-btn');
+
+            // 「部」セクションの展開/折りたたみ
+            buToggleBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                buContentDiv.classList.toggle('collapsed');
+                buToggleBtn.classList.toggle('collapsed');
+                buToggleBtn.setAttribute('aria-expanded', buToggleBtn.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+            });
+
+            // 「シナリオ分類」セクションの展開/折りたたみ
+            categoryToggleBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                categoryContentDiv.classList.toggle('collapsed');
+                categoryToggleBtn.classList.toggle('collapsed');
+                categoryToggleBtn.setAttribute('aria-expanded', categoryToggleBtn.getAttribute('aria-expanded') === 'true' ? 'false' : 'true');
+            });
 
             // カテゴリチェックボックス生成
             categoryCheckboxesContainer.innerHTML = majorCategories.map(cat => `
