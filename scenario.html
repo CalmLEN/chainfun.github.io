@@ -191,10 +191,40 @@
         .collapsible-content.collapsed {
             max-height: 0;
         }
+
+        /* トップに戻るボタン */
+        #scroll-to-top-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 3rem;
+            height: 3rem;
+            background-color: #4a5568;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+        }
+
+        #scroll-to-top-btn:hover {
+            background-color: #2d3748;
+        }
+
+        #scroll-to-top-btn.show {
+            display: flex;
+        }
     </style>
 </head>
 
 <body class="text-gray-800">
+
+    <button id="scroll-to-top-btn" title="ページの最上部へ">▲</button>
 
     <div id="loading-overlay" class="loading-overlay hidden">
         <div class="loader"></div>
@@ -280,7 +310,7 @@
                                 <div class="flex">
                                     <input type="text" id="not-character-name-input" placeholder="例: デルフィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                                 </div>
-                                <p class="text-sm text-gray-500 mt-1 mb-2">これらのキャラクターが**含まれない**シナリオを検索します。</p>
+                                <p class="text-sm text-gray-500 mt-1 mb-2">これらのキャラクターが含まれないシナリオを検索します。</p>
                                 <div class="mb-2">
                                     <label for="note-keywords-input"
                                         class="block mb-2 text-lg font-semibold text-gray-700">備考欄キーワード</label>
@@ -410,6 +440,24 @@
     </div>
 
     <script>
+        // トップに戻るボタンの表示/非表示制御
+        const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                scrollToTopBtn.classList.add('show');
+            } else {
+                scrollToTopBtn.classList.remove('show');
+            }
+        });
+        
+        scrollToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'auto'
+            });
+        });
+
         // 分離JSの関数を利用して初期化
         // 検索結果表示・ページング・メッセージ表示のグローバル関数
         function displayPaginatedResults() {
