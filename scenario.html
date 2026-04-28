@@ -333,6 +333,22 @@
                                         class="text-sm font-semibold text-gray-700">備考があるシナリオのみ表示</label>
                                 </div>
 
+                                <div class="mb-2">
+                                    <label for="quest-keywords-input"
+                                        class="block mb-2 text-lg font-semibold text-gray-700">関連クエスト名キーワード</label>
+                                    <input type="text" id="quest-keywords-input" placeholder=""
+                                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                    <p class="text-sm text-gray-500 mt-1">関連クエスト欄に含まれるキーワードで部分一致検索します。
+                                    </p>
+                                </div>
+
+                                <!-- 関連クエストありのみ検索 -->
+                                <div class="mb-4 flex items-center">
+                                    <input type="checkbox" id="quest-exists-only" class="mr-2">
+                                    <label for="quest-exists-only"
+                                        class="text-sm font-semibold text-gray-700">関連クエストがあるシナリオのみ表示</label>
+                                </div>
+
                             </div>
 
                         </div>
@@ -660,7 +676,9 @@
                     document.getElementById('quest-name-input').value = '';
                     document.getElementById('note-keywords-input').value = '';
                     document.getElementById('not-character-name-input').value = '';
+                    document.getElementById('quest-keywords-input').value = '';
                     document.getElementById('note-exists-only').checked = false;
+                    document.getElementById('quest-exists-only').checked = false;
                     document.getElementById('sort-scenario').checked = true;
                     document.getElementById('sort-asc').checked = true;
                     document.getElementById('page-size-10').checked = true;
@@ -683,6 +701,8 @@
             }
             // 備考ありのみ検索チェックボックス
             const noteExistsOnlyCheckbox = document.getElementById('note-exists-only');
+            // 関連クエストありのみ検索チェックボックス
+            const questExistsOnlyCheckbox = document.getElementById('quest-exists-only');
             // 並び順ラジオ
             const sortModeRadios = document.getElementsByName('sort_mode');
             const sortOrderRadios = document.getElementsByName('sort_order');
@@ -693,6 +713,7 @@
             const form = document.getElementById('search-form');
             const characterInput = document.getElementById('character-name-input');
             const noteKeywordsInput = document.getElementById('note-keywords-input');
+            const questKeywordsInput = document.getElementById('quest-keywords-input');
             const categoryCheckboxesContainer = document.getElementById('category-checkboxes');
             const resultsOutput = document.getElementById('results-output');
             const searchResultsCountSpan = document.getElementById('search-results-count');
@@ -772,6 +793,7 @@
             window.filteredScenarios = [];
             window.lastCharacterNamesInput = '';
             window.lastNoteKeywordsInput = '';
+            window.lastQuestKeywordsInput = '';
             window.lastSearchMode = 'AND';
             window.lastNotCharacterNamesInput = '';
             window.lastNotSearchMode = 'NOT_AND';
@@ -785,6 +807,8 @@
             form.addEventListener('submit', async function (event) {
                 // 備考ありのみ検索
                 const noteExistsOnly = noteExistsOnlyCheckbox && noteExistsOnlyCheckbox.checked;
+                // 関連クエストありのみ検索
+                const questExistsOnly = questExistsOnlyCheckbox && questExistsOnlyCheckbox.checked;
                 // 並び順
                 let sortMode = 'scenario';
                 sortModeRadios.forEach(radio => { if (radio.checked) sortMode = radio.value; });
@@ -797,6 +821,7 @@
                 event.preventDefault();
                 window.lastCharacterNamesInput = characterInput.value.trim();
                 window.lastNoteKeywordsInput = noteKeywordsInput.value.trim();
+                window.lastQuestKeywordsInput = questKeywordsInput.value.trim();
                 window.lastSearchMode = document.querySelector('input[name="character_search_mode"]:checked').value;
                 window.lastNotCharacterNamesInput = notCharacterNameInput.value.trim();
                 window.lastNotSearchMode = document.querySelector('input[name="not_character_search_mode"]:checked').value;
@@ -807,11 +832,13 @@
                 const questSearchMode = document.querySelector('input[name="quest_search_mode"]:checked')?.value || 'AND';
                 const options = {
                     noteExistsOnly,
+                    questExistsOnly,
                     sortMode,
                     sortOrder,
                     characterNames: window.lastCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0),
                     notCharacterNames: window.lastNotCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0),
                     noteSearchString: window.lastNoteKeywordsInput,
+                    questSearchString: window.lastQuestKeywordsInput,
                     questNameSearchString,
                     questSearchMode,
                     lastSearchMode: window.lastSearchMode,
@@ -823,6 +850,10 @@
                 // 備考ありのみ抽出
                 if (noteExistsOnly) {
                     window.filteredScenarios = window.filteredScenarios.filter(s => s.note && s.note.trim().length > 0);
+                }
+                // 関連クエストありのみ抽出
+                if (questExistsOnly) {
+                    window.filteredScenarios = window.filteredScenarios.filter(s => s.quest && s.quest.trim().length > 0);
                 }
                 // 並び順
                 if (sortMode === 'scenario') {

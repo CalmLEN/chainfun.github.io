@@ -4,9 +4,61 @@
   <meta charset="UTF-8">
   <title>メニュー</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', Meiryo, sans-serif;
+      background-color: #fdfdfc;
+      padding: 2rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    .menu-item {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .menu-link {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #3b82f6;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 0.75rem;
+      transition: color 0.2s ease;
+      border-bottom: 2px solid #3b82f6;
+      padding-bottom: 0.25rem;
+    }
+    .menu-link:hover {
+      color: #1d4ed8;
+      border-bottom-color: #1d4ed8;
+    }
+    .menu-description {
+      font-size: 0.95rem;
+      color: #666;
+      line-height: 1.6;
+    }
+  </style>
 </head>
 <body>
-  <button onclick="location.href='scenario.html'">フィーナの日記（シナリオ検索）</button>
-  <button onclick="window.open('data/３部シナリオフロー.webp', '_blank')">３部シナリオフロー</button>
+  <div class="container">
+    <div class="menu-item">
+      <a href="scenario.html" class="menu-link">フィーナの日記（シナリオ検索）</a>
+      <p class="menu-description">キャラクター名やシナリオ分類、備考などから登場するシナリオを検索できます。各シナリオに関連するクエスト情報も記載。備考には補足やワード、個人的お気に入りシーンを記載</p>
+    </div>
+    <div class="menu-item">
+      <a href="data/３部シナリオフロー.png" target="_blank" class="menu-link">３部シナリオフロー</a>
+      <p class="menu-description">第３部メインストーリーのおすすめの進め方を図で表示しています。関連するイベントクエストも紹介。</p>
+    </div>
+    <div class="menu-item">
+      <a href="data/４部シナリオフロー.png" target="_blank" class="menu-link">４部シナリオフロー</a>
+      <p class="menu-description">第４部メインストーリーのおすすめの進め方を図で表示しています。関連するイベントクエストも紹介。</p>
+    </div>
+  </div>
 </body>
 </html>
