@@ -1,10 +1,10 @@
 // カテゴリ定義・マッピング
 const majorCategories = [
-    { code: 'MAIN_STORY_PART1', name: '第一部メインストーリー'},
-    { code: 'MAIN_STORY_PART2', name: '第二部メインストーリー'},
-    { code: 'MAIN_STORY_PART3', name: '第三部メインストーリー'},
-    { code: 'MAIN_STORY_PART4', name: '第四部メインストーリー'},
-    { code: 'MAIN_STORY_PART5', name: '第五部メインストーリー'},
+    { code: 'MAIN_STORY_PART1', name: '第１部メインストーリー'},
+    { code: 'MAIN_STORY_PART2', name: '第２部メインストーリー'},
+    { code: 'MAIN_STORY_PART3', name: '第３部メインストーリー'},
+    { code: 'MAIN_STORY_PART4', name: '第４部メインストーリー'},
+    { code: 'MAIN_STORY_PART5', name: '第５部メインストーリー'},
     { code: 'KIZUNA_NO_KISEKI', name: '絆の軌跡'},
     { code: 'DENSHO_HEN', name: '伝承篇'},
     { code: 'GRAND_SAGA', name: 'グランドサーガ'},
