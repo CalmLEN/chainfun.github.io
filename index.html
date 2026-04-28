@@ -43,22 +43,54 @@
       color: #666;
       line-height: 1.6;
     }
+    .last-update {
+      font-size: 0.9rem;
+      color: #999;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="menu-item">
       <a href="scenario.html" class="menu-link">フィーナの日記（シナリオ検索）</a>
-      <p class="menu-description">キャラクター名やシナリオ分類、備考などから登場するシナリオを検索できます。各シナリオに関連するクエスト情報も記載。備考には補足やワード、個人的お気に入りシーンを記載</p>
+      <p class="menu-description">キャラクター名やシナリオ分類、備考などから登場するシナリオを検索できます。<br>各シナリオに関連するクエスト情報も記載。備考には補足やワード、個人的お気に入りシーンを記載</p>
     </div>
     <div class="menu-item">
       <a href="data/３部シナリオフロー.png" target="_blank" class="menu-link">３部シナリオフロー</a>
-      <p class="menu-description">第３部メインストーリーのおすすめの進め方を図で表示しています。関連するイベントクエストも紹介。</p>
+      <p class="menu-description">第３部メインストーリーのおすすめの進め方を図で表示しています。<br>関連するイベントクエストも紹介。</p>
     </div>
     <div class="menu-item">
       <a href="data/４部シナリオフロー.png" target="_blank" class="menu-link">４部シナリオフロー</a>
-      <p class="menu-description">第４部メインストーリーのおすすめの進め方を図で表示しています。関連するイベントクエストも紹介。</p>
+      <p class="menu-description">第４部メインストーリーのおすすめの進め方を図で表示しています。<br>関連するイベントクエストも紹介。</p>
+    </div>
+    <div class="menu-item">
+      <a href="data/シナリオ進捗.txt" target="_blank" class="menu-link">シナリオ登録進捗状況</a>
+      <p class="menu-description">シナリオ検索のざっくりとした登録状況です。<span id="last-update-text" class="last-update"></span></p>
     </div>
   </div>
+
+  <script>
+    // シナリオ進捗ファイルの1行目（更新日）を読み込んで表示
+    async function loadLastUpdateDate() {
+      try {
+        const response = await fetch('data/シナリオ進捗.txt');
+        const text = await response.text();
+        const lines = text.split('\n');
+        const firstLine = lines[0].trim();
+        
+        if (firstLine) {
+          const updateElement = document.getElementById('last-update-text');
+          updateElement.textContent = `(最終更新: ${firstLine})`;
+        }
+      } catch (error) {
+        console.log('シナリオ進捗ファイルの読み込みに失敗しました:', error);
+      }
+    }
+    
+    // ページ読み込み時に実行
+    document.addEventListener('DOMContentLoaded', loadLastUpdateDate);
+  </script>
 </body>
 </html>
