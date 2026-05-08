@@ -33,7 +33,9 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
         }
 
         .form-input-group {
@@ -255,11 +257,11 @@
                                 <div class="flex-1"></div>
                                 <div class="flex items-center space-x-2 justify-end">
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="character_search_mode" value="NOT_AND" class="form-radio text-red-600" checked>
+                                        <input type="radio" name="character_search_mode" value="AND" class="form-radio text-red-600" checked>
                                         <span class="ml-1 text-xs text-gray-700">AND</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="character_search_mode" value="NOT_OR" class="form-radio text-red-600">
+                                        <input type="radio" name="character_search_mode" value="OR" class="form-radio text-red-600">
                                         <span class="ml-1 text-xs text-gray-700">OR</span>
                                     </label>
                                 </div>
@@ -488,6 +490,13 @@
         // 分離JSの関数を利用して初期化
         // 検索結果表示・ページング・メッセージ表示のグローバル関数
         function displayPaginatedResults() {
+            // 検索画面を確実に表示
+            const mainSearchView = document.getElementById('main-search-view');
+            if (mainSearchView) {
+                mainSearchView.classList.remove('hidden');
+                mainSearchView.style.display = 'block';
+            }
+            
             const totalPages = Math.ceil(window.filteredScenarios.length / window.itemsPerPage);
             if (window.filteredScenarios.length === 0) {
                 displayMessage('指定された条件に一致するシナリオは見つかりませんでした。');
@@ -521,9 +530,16 @@
             function showDetailInPage(uniqueId) {
                 const scenario = window.scenarios.find(s => s.uniqueId === uniqueId);
                 if (!scenario) return;
-                document.getElementById('main-search-view').classList.add('hidden');
+                
+                // main-search-viewを確実に非表示
+                const mainSearchView = document.getElementById('main-search-view');
+                mainSearchView.classList.add('hidden');
+                mainSearchView.style.display = 'none';
+                
+                // 詳細コンテナを確実に表示
                 const detailContainer = document.getElementById('character-detail-container');
                 detailContainer.classList.remove('hidden');
+                detailContainer.style.display = 'block';
                 
                 const scenarioName = scenario.name;
                 const scenarioPath = [
@@ -542,8 +558,10 @@
                     const questText = scenario.quest.replace(/_NL_/g, '\n');
                     document.getElementById('detail-quest').textContent = questText;
                     questContainer.classList.remove('hidden');
+                    questContainer.style.display = 'block';
                 } else {
                     questContainer.classList.add('hidden');
+                    questContainer.style.display = 'none';
                 }
                 
                 const charList = scenario.characters && scenario.characters.length > 0
@@ -555,6 +573,11 @@
                 document.getElementById('detail-note').textContent = noteText;
                 
                 window.scrollTo(0, 0);
+                
+                // スクロール後も確実に main-search-view を非表示
+                mainSearchView.classList.add('hidden');
+                mainSearchView.style.display = 'none';
+                mainSearchView.style.visibility = 'hidden';
                 
                 // 詳細表示状態をHistoryに保存
                 pushStateAndShow('detail', {
@@ -569,23 +592,6 @@
                     lastClickedScenarioDivId: window.lastClickedScenarioDivId
                 });
             }
-            // 戻るボタンで検索一覧に戻る
-            document.addEventListener('DOMContentLoaded', () => {
-                const backBtn = document.getElementById('back-to-search-btn');
-                if (backBtn) {
-                    backBtn.addEventListener('click', function () {
-                        document.getElementById('character-detail-container').classList.add('hidden');
-                        document.getElementById('main-search-view').classList.remove('hidden');
-                        // 検索結果の位置復元
-                        if (window.lastClickedScenarioDivId) {
-                            const targetElement = document.getElementById(window.lastClickedScenarioDivId);
-                            if (targetElement) {
-                                targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
-                            }
-                        }
-                    });
-                }
-            });
             document.getElementById('search-results-count').textContent = `(${window.filteredScenarios.length}件)`;
             updatePaginationControls(window.currentPage, totalPages);
         }
@@ -624,13 +630,33 @@
         window.addEventListener('popstate', (event) => {
             if (event.state === null) {
                 // 初期状態に戻す
-                document.getElementById('character-detail-container').classList.add('hidden');
-                document.getElementById('main-search-view').classList.remove('hidden');
+                const detailContainer = document.getElementById('character-detail-container');
+                detailContainer.classList.add('hidden');
+                detailContainer.style.display = 'none';
+                const mainSearchView = document.getElementById('main-search-view');
+                mainSearchView.classList.remove('hidden');
+                mainSearchView.style.display = 'block';
+                mainSearchView.style.visibility = 'visible';
+                // 検索フォームを確実に表示
+                const searchContainer = document.getElementById('search-container');
+                if (searchContainer) {
+                    searchContainer.style.display = 'block';
+                }
                 window.scrollTo(0, 0);
             } else if (event.state.type === 'search-results') {
                 // 検索結果の状態に戻す
-                document.getElementById('character-detail-container').classList.add('hidden');
-                document.getElementById('main-search-view').classList.remove('hidden');
+                const detailContainer = document.getElementById('character-detail-container');
+                detailContainer.classList.add('hidden');
+                detailContainer.style.display = 'none';
+                const mainSearchView = document.getElementById('main-search-view');
+                mainSearchView.classList.remove('hidden');
+                mainSearchView.style.display = 'block';
+                mainSearchView.style.visibility = 'visible';
+                // 検索フォームを確実に表示
+                const searchContainer = document.getElementById('search-container');
+                if (searchContainer) {
+                    searchContainer.style.display = 'block';
+                }
                 window.currentPage = event.state.currentPage || 1;
                 window.filteredScenarios = event.state.filteredScenarios || [];
                 displayPaginatedResults();
@@ -645,9 +671,13 @@
                 }
             } else if (event.state.type === 'detail') {
                 // 詳細画面の状態に戻す
-                document.getElementById('main-search-view').classList.add('hidden');
+                const mainSearchView = document.getElementById('main-search-view');
+                mainSearchView.classList.add('hidden');
+                mainSearchView.style.display = 'none';
+                mainSearchView.style.visibility = 'hidden';
                 const detailContainer = document.getElementById('character-detail-container');
                 detailContainer.classList.remove('hidden');
+                detailContainer.style.display = 'block';
                 document.getElementById('detail-scenario-name').textContent = event.state.scenarioName;
                 document.getElementById('detail-scenario-path').textContent = event.state.scenarioPath;
                 
@@ -657,8 +687,10 @@
                     const questText = event.state.questText.replace(/_NL_/g, '\n');
                     document.getElementById('detail-quest').textContent = questText;
                     questContainer.classList.remove('hidden');
+                    questContainer.style.display = 'block';
                 } else {
                     questContainer.classList.add('hidden');
+                    questContainer.style.display = 'none';
                 }
                 
                 document.getElementById('detail-character-list').innerHTML = event.state.characterListHtml;
@@ -962,6 +994,26 @@
         }
         // 分離JSの関数を利用して初期化
         initialize();
+        
+        // 戻るボタン（詳細画面）で検索一覧に戻る
+        const backBtn = document.getElementById('back-to-search-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function () {
+                const detailContainer = document.getElementById('character-detail-container');
+                detailContainer.classList.add('hidden');
+                detailContainer.style.display = 'none';
+                const mainSearchView = document.getElementById('main-search-view');
+                mainSearchView.classList.remove('hidden');
+                mainSearchView.style.display = 'block';
+                // 検索結果の位置復元
+                if (window.lastClickedScenarioDivId) {
+                    const targetElement = document.getElementById(window.lastClickedScenarioDivId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+                    }
+                }
+            });
+        }
     </script>
 </body>
 
