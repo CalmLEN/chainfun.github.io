@@ -9,7 +9,7 @@ const majorCategories = [
     { code: 'DENSHO_HEN', name: '伝承篇'},
     { code: 'GRAND_SAGA', name: 'グランドサーガ'},
     { code: 'SECRET_QUEST', name: 'シークレットクエスト'},
-    { code: 'SIDE_STORY_PART4', name: '第四部サイドストーリー'},
+    { code: 'SIDE_STORY_PART4', name: '第４部サイドストーリー'},
     { code: 'ANOMALY_QUEST', name: '異変クエスト'},
     { code: 'GAIDEN', name: '外伝'},
     { code: 'EVENT_TOUHA', name: '踏破型イベント'},
