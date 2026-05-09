@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>フィーナの日記（シナリオ検索）</title>
+    <title>義勇軍の日記（シナリオ検索）</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="backend/data.js"></script>
     <script src="backend/csv_loader.js"></script>
@@ -242,8 +242,8 @@
         </div>
 
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">フィーナの日記</h1>
-            <p class="mt-2 text-gray-500">キャラクター名とシナリオ分類で、登場するシナリオを検索します。</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-700">義勇軍の日記</h1>
+            <p class="mt-2 text-gray-500">キャラクター名やシナリオ分類などから該当キャラが登場するシナリオを検索できます。</p>
         </header>
 
         <main>
@@ -267,7 +267,7 @@
                                 </div>
                             </div>
                             <div class="flex">
-                                <input type="text" id="character-name-input" placeholder="例: 主人公,フィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                <input type="text" id="character-name-input" placeholder="例: 主人公、フィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             </div>
                             <p class="text-sm text-gray-500 mt-1 leading-relaxed">
                                 複数のキャラクター名はカンマ(,)、読点(、)、またはスペースで区切ってください。</p>
@@ -441,7 +441,7 @@
 
             <div id="character-detail-container" class="hidden bg-white p-6 rounded-lg shadow-md">
                 <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">シナリオ詳細: <span
-                        id="detail-scenario-name"></span></h2>
+                        id="detail-scenario-name"></span><span id="detail-bu" class="text-lg text-gray-600 ml-2"></span></h2>
                 <div id="detail-scenario-path" class="text-gray-600 mb-4"></div>
 
                 <div id="detail-quest-container" class="bg-blue-50 p-4 rounded-md border border-blue-200 mb-6 hidden">
@@ -516,7 +516,8 @@
                 const hasQuest = scenario.quest && scenario.quest.trim().length > 0;
                 const balloonIcon = hasNote ? `<img src="icon/comment.ico" title="備考あり" style="display:inline-block;vertical-align:middle;margin-left:4px;width:18px;height:18px;" alt="備考あり">` : '';
                 const questIcon = hasQuest ? `<img src="icon/book.ico" title="関連クエストあり" style="display:inline-block;vertical-align:middle;margin-left:4px;width:18px;height:18px;" alt="関連クエストあり">` : '';
-                return `<div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm result-item" id="scenario-item-${scenario.uniqueId}"><p class="text-sm text-gray-600 mt-1">${path}</p><strong class="text-lg" data-scenario-id="${scenario.uniqueId}">${scenario.name}</strong> <span class="text-sm text-gray-500 ml-2">(${characterCount}人)${balloonIcon}${questIcon}</span></div>`;
+                const buText = scenario.bu ? `<span class="text-sm text-gray-600 whitespace-nowrap ml-4">${scenario.bu}</span>` : '';
+                return `<div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm result-item flex justify-between items-start" id="scenario-item-${scenario.uniqueId}"><div class="flex-1"><p class="text-sm text-gray-600 mt-1">${path}</p><strong class="text-lg" data-scenario-id="${scenario.uniqueId}">${scenario.name}</strong> <span class="text-sm text-gray-500 ml-2">(${characterCount}人)${balloonIcon}${questIcon}</span></div>${buText}</div>`;
             }).join('');
             resultsOutput.querySelectorAll('.result-item strong').forEach(element => {
                 element.addEventListener('click', (event) => {
@@ -552,6 +553,10 @@
                 document.getElementById('detail-scenario-name').textContent = scenarioName;
                 document.getElementById('detail-scenario-path').textContent = scenarioPath;
                 
+                // bu情報の表示
+                const buText = scenario.bu ? `（${scenario.bu}）` : '';
+                document.getElementById('detail-bu').textContent = buText;
+                
                 // クエスト情報の表示/非表示制御
                 const questContainer = document.getElementById('detail-quest-container');
                 if (scenario.quest && scenario.quest.trim().length > 0) {
@@ -583,6 +588,7 @@
                 pushStateAndShow('detail', {
                     scenarioName: scenarioName,
                     scenarioPath: scenarioPath,
+                    buText: buText,
                     questText: scenario.quest || '',
                     characterListHtml: charList,
                     noteText: noteText,
@@ -680,6 +686,7 @@
                 detailContainer.style.display = 'block';
                 document.getElementById('detail-scenario-name').textContent = event.state.scenarioName;
                 document.getElementById('detail-scenario-path').textContent = event.state.scenarioPath;
+                document.getElementById('detail-bu').textContent = event.state.buText || '';
                 
                 // クエスト情報の復元
                 const questContainer = document.getElementById('detail-quest-container');
@@ -890,7 +897,12 @@
                 // 並び順
                 if (sortMode === 'scenario') {
                     window.filteredScenarios.sort((a, b) => {
-                        // categoryMapping > lv1_order > lv2_order > lv3_order > order
+                        // bu > categoryMapping > lv1_order > lv2_order > lv3_order > order
+                        const buOrder = { '１～２部': 1, '３部': 2, '４部': 3, '５部': 4 };
+                        const buAVal = buOrder[a.bu] || 999;
+                        const buBVal = buOrder[b.bu] || 999;
+                        if (buAVal !== buBVal) return sortOrder === 'asc' ? buAVal - buBVal : buBVal - buAVal;
+                        
                         const catA = categoryMapping[a.catCode] || 999;
                         const catB = categoryMapping[b.catCode] || 999;
                         if (catA !== catB) return sortOrder === 'asc' ? catA - catB : catB - catA;
