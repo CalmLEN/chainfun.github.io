@@ -6,7 +6,10 @@ function filterScenarios(scenarios, options) {
         noteSearchString,
         questSearchString,
         questNameSearchString,
+        notQuestNameSearchString,
         questSearchMode,
+        notQuestSearchMode,
+        includeBattleAffiliation = false,
         lastSearchMode,
         lastNotSearchMode,
         lastSelectedCategoryCodes,
@@ -50,6 +53,9 @@ function filterScenarios(scenarios, options) {
         if (questNameSearchString.length > 0) {
             const questKeywords = questNameSearchString.split(/[,、\s]+/).filter(q => q.length > 0);
             const questFields = [scenario.lv1, scenario.lv2, scenario.lv3, scenario.name].filter(Boolean);
+            if (includeBattleAffiliation && scenario.char_battle) {
+                questFields.push(String(scenario.char_battle).trim());
+            }
             if (questSearchMode === 'OR') {
                 isQuestNameMatch = questFields.some(field => questKeywords.some(q => field.includes(q)));
             } else {
@@ -57,6 +63,20 @@ function filterScenarios(scenarios, options) {
             }
         }
 
-        return isCharacterMatch && isNotCharacterMatch && isNoteMatch && isQuestMatch && isCategoryMatch && isBuMatch && isQuestNameMatch;
+        let isNotQuestNameMatch = true;
+        if (notQuestNameSearchString.length > 0) {
+            const notQuestKeywords = notQuestNameSearchString.split(/[,、\s]+/).filter(q => q.length > 0);
+            const questFields = [scenario.lv1, scenario.lv2, scenario.lv3, scenario.name].filter(Boolean);
+            if (includeBattleAffiliation && scenario.char_battle) {
+                questFields.push(String(scenario.char_battle).trim());
+            }
+            if (notQuestSearchMode === 'NOT_OR') {
+                isNotQuestNameMatch = notQuestKeywords.every(q => questFields.every(field => !field.includes(q)));
+            } else {
+                isNotQuestNameMatch = notQuestKeywords.some(q => questFields.every(field => !field.includes(q)));
+            }
+        }
+
+        return isCharacterMatch && isNotCharacterMatch && isNoteMatch && isQuestMatch && isCategoryMatch && isBuMatch && isQuestNameMatch && isNotQuestNameMatch;
     });
 }
