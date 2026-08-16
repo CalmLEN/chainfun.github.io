@@ -244,6 +244,9 @@
         <header class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-bold text-gray-700">義勇軍の日記</h1>
             <p class="mt-2 text-gray-500">キャラクター名やシナリオ分類などから該当キャラが登場するシナリオを検索できます。</p>
+            <div class="mt-3 text-sm text-gray-600">
+                <a id="scenario-registration-link" href="" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline break-all">シナリオ登録はこちらから</a>
+            </div>
         </header>
 
         <main>
@@ -290,6 +293,12 @@
                             <div class="flex">
                                 <input type="text" id="quest-name-input" placeholder="例:アリーチェ篇、聖都、ユリアナ、2014 " class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                             </div>
+                            <div class="flex justify-end mt-2">
+                                <label class="inline-flex items-center text-sm text-gray-700">
+                                    <input type="checkbox" id="include-battle-affiliation-checkbox" class="form-checkbox text-blue-600">
+                                    <span class="ml-2">バトル所属を含める</span>
+                                </label>
+                            </div>
 
                             <p class="text-sm text-gray-500 mt-1">ストーリー名、所属・キャラ名（キャラクエ検索用）、実装年　など</p>
                         </div>
@@ -319,6 +328,25 @@
                                     <input type="text" id="not-character-name-input" placeholder="例: デルフィーナ" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                                 </div>
                                 <p class="text-sm text-gray-500 mt-1 mb-2">これらのキャラクターが含まれないシナリオを検索します。</p>
+
+                                <label for="not-quest-name-input"
+                                    class="mb-2 text-lg font-semibold text-gray-700 flex items-center justify-between">除外クエスト名
+                                    <span class="flex items-center space-x-2">
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="not_quest_search_mode" value="NOT_AND" class="form-radio text-red-600">
+                                            <span class="ml-1 text-xs text-gray-700">AND</span>
+                                        </label>
+                                        <label class="inline-flex items-center">
+                                            <input type="radio" name="not_quest_search_mode" value="NOT_OR" class="form-radio text-red-600" checked>
+                                            <span class="ml-1 text-xs text-gray-700">OR</span>
+                                        </label>
+                                    </span>
+                                </label>
+                                <div class="flex">
+                                    <input type="text" id="not-quest-name-input" placeholder="" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                </div>
+                                <p class="text-sm text-gray-500 mt-1 mb-2">これらのクエスト名が含まれないシナリオを検索します。</p>
+
                                 <div class="mb-2">
                                     <label for="note-keywords-input"
                                         class="block mb-2 text-lg font-semibold text-gray-700">備考欄キーワード</label>
@@ -469,6 +497,16 @@
     </div>
 
     <script>
+        function getScenarioDisplayLv2(scenario) {
+            if (!scenario || !scenario.lv2) {
+                return scenario ? scenario.lv2 || '' : '';
+            }
+            if (scenario.catCode !== 'CHARACTER_QUEST' || !scenario.char_battle || !String(scenario.char_battle).trim()) {
+                return scenario.lv2;
+            }
+            return `${scenario.lv2}（バトル所属：${String(scenario.char_battle).trim()}）`;
+        }
+
         // トップに戻るボタンの表示/非表示制御
         const scrollToTopBtn = document.getElementById('scroll-to-top-btn');
         
@@ -510,7 +548,7 @@
             const resultsOutput = document.getElementById('results-output');
             resultsOutput.innerHTML = paginatedResults.map(scenario => {
                 const category = majorCategories.find(cat => cat.code === scenario.catCode);
-                const path = [category ? category.name : '', scenario.lv1, scenario.lv2, scenario.lv3].filter(Boolean).join(' > ');
+                const path = [category ? category.name : '', scenario.lv1, getScenarioDisplayLv2(scenario), scenario.lv3].filter(Boolean).join(' > ');
                 const characterCount = scenario.characters ? scenario.characters.length : 0;
                 const hasNote = scenario.note && scenario.note.trim().length > 0;
                 const hasQuest = scenario.quest && scenario.quest.trim().length > 0;
@@ -546,7 +584,7 @@
                 const scenarioPath = [
                     (majorCategories.find(cat => cat.code === scenario.catCode)?.name || ''),
                     scenario.lv1,
-                    scenario.lv2,
+                    getScenarioDisplayLv2(scenario),
                     scenario.lv3
                 ].filter(Boolean).join(' > ');
                 
@@ -707,14 +745,31 @@
         });
 
         async function initialize() {
+            try {
+                const urlTextResponse = await fetch('data/シナリオ登録URL.txt');
+                if (urlTextResponse.ok) {
+                    const urlText = await urlTextResponse.text();
+                    const lines = urlText.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+                    if (lines.length >= 2) {
+                        const url = lines[1];
+                        const link = document.getElementById('scenario-registration-link');
+                        if (link) link.href = url;
+                    }
+                }
+            } catch (error) {
+                console.warn('シナリオ登録URLの読み込みに失敗しました:', error);
+            }
+
             // クリアボタンのイベント設定
             const clearFormBtn = document.getElementById('clear-form-btn');
             if (clearFormBtn) {
                 clearFormBtn.addEventListener('click', function () {
                     document.getElementById('character-name-input').value = '';
                     document.getElementById('quest-name-input').value = '';
+                    document.getElementById('include-battle-affiliation-checkbox').checked = false;
                     document.getElementById('note-keywords-input').value = '';
                     document.getElementById('not-character-name-input').value = '';
+                    document.getElementById('not-quest-name-input').value = '';
                     document.getElementById('quest-keywords-input').value = '';
                     document.getElementById('note-exists-only').checked = false;
                     document.getElementById('quest-exists-only').checked = false;
@@ -724,6 +779,7 @@
                     document.getElementsByName('character_search_mode')[0].checked = true;
                     document.getElementsByName('quest_search_mode')[1].checked = true;
                     document.getElementsByName('not_character_search_mode')[1].checked = true;
+                    document.getElementsByName('not_quest_search_mode')[1].checked = true;
                     // カテゴリ全選択
                     const categoryCheckboxes = document.querySelectorAll('#category-checkboxes input[type="checkbox"]');
                     categoryCheckboxes.forEach(cb => cb.checked = true);
@@ -772,6 +828,7 @@
             const toggleotherSearchBtn = document.getElementById('toggle-other-search-btn');
             const otherSearchOptionsDiv = document.getElementById('other-search-options');
             const notCharacterNameInput = document.getElementById('not-character-name-input');
+            const notQuestNameInput = document.getElementById('not-quest-name-input');
             const buCheckboxesContainer = document.getElementById('bu-checkboxes');
             const buContentDiv = document.getElementById('bu-checkboxes-content');
             const categoryContentDiv = document.getElementById('category-checkboxes-content');
@@ -836,6 +893,8 @@
             window.lastSearchMode = 'AND';
             window.lastNotCharacterNamesInput = '';
             window.lastNotSearchMode = 'NOT_AND';
+            window.lastNotQuestNameInput = '';
+            window.lastNotQuestSearchMode = 'NOT_OR';
             window.lastSelectedCategoryCodes = [];
             window.lastSelectedBuCodes = [];
             window.lastFilteredScenarios = [];
@@ -864,11 +923,14 @@
                 window.lastSearchMode = document.querySelector('input[name="character_search_mode"]:checked').value;
                 window.lastNotCharacterNamesInput = notCharacterNameInput.value.trim();
                 window.lastNotSearchMode = document.querySelector('input[name="not_character_search_mode"]:checked').value;
+                window.lastNotQuestNameInput = notQuestNameInput.value.trim();
+                window.lastNotQuestSearchMode = document.querySelector('input[name="not_quest_search_mode"]:checked').value;
                 window.lastSelectedCategoryCodes = Array.from(categoryCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value);
                 window.lastSelectedBuCodes = Array.from(buCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value);
                 const questNameInput = document.getElementById('quest-name-input');
                 const questNameSearchString = questNameInput ? questNameInput.value.trim() : '';
                 const questSearchMode = document.querySelector('input[name="quest_search_mode"]:checked')?.value || 'AND';
+                const includeBattleAffiliation = document.getElementById('include-battle-affiliation-checkbox')?.checked === true;
                 const options = {
                     noteExistsOnly,
                     questExistsOnly,
@@ -880,6 +942,9 @@
                     questSearchString: window.lastQuestKeywordsInput,
                     questNameSearchString,
                     questSearchMode,
+                    includeBattleAffiliation,
+                    notQuestNameSearchString: window.lastNotQuestNameInput,
+                    notQuestSearchMode: window.lastNotQuestSearchMode,
                     lastSearchMode: window.lastSearchMode,
                     lastNotSearchMode: window.lastNotSearchMode,
                     lastSelectedCategoryCodes: window.lastSelectedCategoryCodes,
