@@ -221,6 +221,60 @@
         #scroll-to-top-btn.show {
             display: flex;
         }
+
+        /* 検索タイプのタブ */
+        .search-tab-bar {
+            display: flex;
+            gap: 0.25rem;
+            border-bottom: 2px solid #e5e7eb;
+            margin-bottom: 1.25rem;
+        }
+
+        .search-tab {
+            position: relative;
+            cursor: pointer;
+        }
+
+        .search-tab input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .search-tab span {
+            display: block;
+            padding: 0.5rem 1.5rem;
+            margin-bottom: -2px;
+            color: #6b7280;
+            font-weight: 600;
+            background-color: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+
+        .search-tab:hover span {
+            color: #2d3748;
+        }
+
+        .search-tab input:checked+span {
+            color: #2d3748;
+            background-color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        .search-tab input:focus-visible+span {
+            outline: 2px solid #3b82f6;
+        }
+
+        /* キャラ名一覧のときは検索フォームの背景を薄いクリーム色（#fffbeb）にする */
+        #search-container.list-mode {
+            background-color: #fffbeb !important;
+        }
+
+        #search-container.list-mode .search-tab input:checked+span {
+            background-color: #fffbeb;
+            border-bottom-color: #fffbeb;
+        }
     </style>
 </head>
 
@@ -254,6 +308,31 @@
                 <div id="search-container" class="bg-white p-6 rounded-lg shadow-md mb-8">
                     <form id="search-form">
                         <div class="mb-6">
+                            <!-- 検索タイプ（タブ） -->
+                            <div class="search-tab-bar" role="tablist">
+                                <label class="search-tab">
+                                    <input type="radio" name="search_type" value="scenario" checked>
+                                    <span>シナリオ検索</span>
+                                </label>
+                                <label class="search-tab">
+                                    <input type="radio" name="search_type" value="characterList">
+                                    <span>キャラ名一覧</span>
+                                </label>
+                            </div>
+
+                            <!-- 登場回数（キャラ名一覧のときのみ表示） -->
+                            <div id="appearance-count-group" class="mb-4 hidden">
+                                <label for="appearance-from" class="block mb-2 text-lg font-semibold text-gray-700">登場回数</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="appearance-from" min="0" step="1" 
+                                        class="w-32 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                    <span class="text-gray-700">～</span>
+                                    <input type="number" id="appearance-to" min="0" step="1" 
+                                        class="w-32 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                                    <span class="text-sm text-gray-700"></span>
+                                </div>
+                            </div>
+
                             <!-- キャラクター名 -->
                             <div class="flex items-center mb-2">
                                 <label for="character-name-input" class="text-lg font-semibold text-gray-700 mr-2">キャラ名</label>
@@ -436,7 +515,7 @@
                         </div>
 
 
-                        <div class="text-center flex justify-center space-x-4">
+                        <div class="text-center flex flex-wrap justify-center gap-4">
                             <button type="button" id="clear-form-btn"
                                 class="bg-gray-300 hover:bg-gray-400 text-gray-700 font-bold py-2 px-8 rounded-full transition-transform transform hover:scale-105">
                                 クリア
@@ -451,7 +530,7 @@
 
                 <div id="results-container">
                     <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b-2 border-gray-200 pb-2">
-                        検索結果
+                        <span id="results-title">検索結果</span>
                         <span id="search-results-count" class="text-xl text-blue-600 font-bold ml-2"></span>
                     </h2>
                     <div id="results-output" class="space-y-4">
@@ -528,6 +607,7 @@
         // 分離JSの関数を利用して初期化
         // 検索結果表示・ページング・メッセージ表示のグローバル関数
         function displayPaginatedResults() {
+            setResultsMode('results');
             // 検索画面を確実に表示
             const mainSearchView = document.getElementById('main-search-view');
             if (mainSearchView) {
@@ -641,6 +721,7 @@
         }
 
         function displayMessage(message) {
+            setResultsMode('results');
             document.getElementById('results-output').innerHTML = `<p class="text-gray-500 text-center py-8">${message}</p>`;
         }
 
@@ -662,12 +743,98 @@
             }
         }
 
+        // ===== キャラ名一覧 =====
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        // 結果エリアの表示モード切替（'results': 検索結果 / 'list': キャラ名一覧）
+        function setResultsMode(mode) {
+            document.getElementById('results-title').textContent = mode === 'list' ? 'キャラ名一覧' : '検索結果';
+            document.getElementById('pagination-controls').style.display = mode === 'list' ? 'none' : '';
+        }
+
+        function renderCharacterList(characterList, scenarioCount) {
+            setResultsMode('list');
+            const output = document.getElementById('results-output');
+            document.getElementById('search-results-count').textContent = `(${characterList.length}人)`;
+            if (!characterList.length) {
+                output.innerHTML = '<p class="text-gray-500 text-center py-8">指定された条件に一致するキャラクターは見つかりませんでした。</p>';
+                return;
+            }
+            const items = characterList.map(c => `
+                <button type="button" data-character-name="${escapeHtml(c.name)}"
+                    class="text-left text-blue-700 hover:underline cursor-pointer py-1 break-all">
+                    ${escapeHtml(c.name)}<span class="text-gray-600">（${c.count}）</span>
+                </button>`).join('');
+            output.innerHTML = `
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 gap-y-1">${items}</div>
+                </div>`;
+        }
+
         // 状態をHistoryに保存し表示を切り替える関数
         function pushStateAndShow(stateType, stateData) {
             history.pushState({
                 type: stateType,
-                ...stateData
+                ...stateData,
+                formState: snapshotForm()
             }, null, null);
+        }
+
+        // ===== 検索フォームの状態保存・復元（戻る/進むで検索条件を履歴時点に戻す） =====
+        const FORM_TEXT_IDS = ['character-name-input', 'quest-name-input', 'note-keywords-input',
+            'not-character-name-input', 'not-quest-name-input', 'quest-keywords-input',
+            'appearance-from', 'appearance-to'];
+        const FORM_CHECK_IDS = ['include-battle-affiliation-checkbox', 'note-exists-only', 'quest-exists-only'];
+        const FORM_RADIO_NAMES = ['search_type', 'character_search_mode', 'quest_search_mode',
+            'not_character_search_mode', 'not_quest_search_mode', 'sort_mode', 'sort_order', 'page_size'];
+
+        function snapshotForm() {
+            const texts = {};
+            FORM_TEXT_IDS.forEach(id => { texts[id] = document.getElementById(id).value; });
+            const checks = {};
+            FORM_CHECK_IDS.forEach(id => { checks[id] = document.getElementById(id).checked; });
+            const radios = {};
+            FORM_RADIO_NAMES.forEach(name => {
+                const r = document.querySelector(`input[name="${name}"]:checked`);
+                radios[name] = r ? r.value : null;
+            });
+            const checkedValues = selector => Array.from(document.querySelectorAll(selector + ' input[type="checkbox"]'))
+                .filter(cb => cb.checked).map(cb => cb.value);
+            return {
+                texts, checks, radios,
+                bu: checkedValues('#bu-checkboxes'),
+                categories: checkedValues('#category-checkboxes'),
+                exactCharacterName: window.exactCharacterName || null,
+                savedSortOrder: window.savedSortOrder || null,
+                savedSortMode: window.savedSortMode || null
+            };
+        }
+
+        function restoreForm(state) {
+            if (!state) return;
+            FORM_TEXT_IDS.forEach(id => { document.getElementById(id).value = state.texts[id] ?? ''; });
+            FORM_CHECK_IDS.forEach(id => { document.getElementById(id).checked = !!state.checks[id]; });
+            FORM_RADIO_NAMES.forEach(name => {
+                const value = state.radios[name];
+                if (value == null) return;
+                const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+                if (radio) radio.checked = true;
+            });
+            const setChecked = (selector, values) => {
+                document.querySelectorAll(selector + ' input[type="checkbox"]').forEach(cb => {
+                    cb.checked = values.includes(cb.value);
+                });
+            };
+            setChecked('#bu-checkboxes', state.bu || []);
+            setChecked('#category-checkboxes', state.categories || []);
+            window.exactCharacterName = state.exactCharacterName || null;
+            window.savedSortOrder = state.savedSortOrder || null;
+            window.savedSortMode = state.savedSortMode || null;
+            const pageSize = parseInt(state.radios.page_size, 10);
+            if (pageSize) window.itemsPerPage = pageSize;
+            if (window.applySearchTypeUI) window.applySearchTypeUI();
         }
 
         // 戻るボタン押下時の処理
@@ -701,6 +868,7 @@
                 if (searchContainer) {
                     searchContainer.style.display = 'block';
                 }
+                restoreForm(event.state.formState);
                 window.currentPage = event.state.currentPage || 1;
                 window.filteredScenarios = event.state.filteredScenarios || [];
                 displayPaginatedResults();
@@ -713,6 +881,17 @@
                         }
                     }, 0);
                 }
+            } else if (event.state.type === 'character-list') {
+                // キャラ名一覧の状態に戻す
+                const detailContainer = document.getElementById('character-detail-container');
+                detailContainer.classList.add('hidden');
+                detailContainer.style.display = 'none';
+                const mainSearchView = document.getElementById('main-search-view');
+                mainSearchView.classList.remove('hidden');
+                mainSearchView.style.display = 'block';
+                mainSearchView.style.visibility = 'visible';
+                restoreForm(event.state.formState);
+                renderCharacterList(event.state.characterList || [], event.state.scenarioCount || 0);
             } else if (event.state.type === 'detail') {
                 // 詳細画面の状態に戻す
                 const mainSearchView = document.getElementById('main-search-view');
@@ -765,6 +944,12 @@
             if (clearFormBtn) {
                 clearFormBtn.addEventListener('click', function () {
                     document.getElementById('character-name-input').value = '';
+                    window.exactCharacterName = null;
+                    document.getElementById('appearance-from').value = '';
+                    document.getElementById('appearance-to').value = '';
+                    window.savedSortOrder = null;
+                    window.savedSortMode = null;
+                    document.querySelector('input[name="search_type"][value="scenario"]').checked = true;
                     document.getElementById('quest-name-input').value = '';
                     document.getElementById('include-battle-affiliation-checkbox').checked = false;
                     document.getElementById('note-keywords-input').value = '';
@@ -775,6 +960,7 @@
                     document.getElementById('quest-exists-only').checked = false;
                     document.getElementById('sort-scenario').checked = true;
                     document.getElementById('sort-asc').checked = true;
+                    applySearchTypeUI();
                     document.getElementById('page-size-10').checked = true;
                     document.getElementsByName('character_search_mode')[0].checked = true;
                     document.getElementsByName('quest_search_mode')[1].checked = true;
@@ -917,6 +1103,10 @@
                 pageSizeRadios.forEach(radio => { if (radio.checked) pageSize = parseInt(radio.value); });
                 window.itemsPerPage = pageSize;
                 event.preventDefault();
+                if (document.querySelector('input[name="search_type"]:checked').value === 'characterList') {
+                    runCharacterList(sortOrder);
+                    return;
+                }
                 window.lastCharacterNamesInput = characterInput.value.trim();
                 window.lastNoteKeywordsInput = noteKeywordsInput.value.trim();
                 window.lastQuestKeywordsInput = questKeywordsInput.value.trim();
@@ -936,7 +1126,11 @@
                     questExistsOnly,
                     sortMode,
                     sortOrder,
-                    characterNames: window.lastCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0),
+                    // キャラ名一覧から選んだ場合は、名前をそのまま（分割せず・完全一致で）検索する
+                    characterNames: window.exactCharacterName
+                        ? [window.exactCharacterName]
+                        : window.lastCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0),
+                    exactCharacterMatch: !!window.exactCharacterName,
                     notCharacterNames: window.lastNotCharacterNamesInput.split(/[,、\s]+/).filter(name => name.length > 0),
                     noteSearchString: window.lastNoteKeywordsInput,
                     questSearchString: window.lastQuestKeywordsInput,
@@ -1011,6 +1205,127 @@
                     currentPage: window.currentPage,
                     lastClickedScenarioDivId: window.lastClickedScenarioDivId
                 });
+            });
+
+            // ===== キャラ名一覧 =====
+            window.exactCharacterName = null;
+            // 入力欄を手で編集したら通常（部分一致）の検索に戻す
+            characterInput.addEventListener('input', () => { window.exactCharacterName = null; });
+
+            // 検索タイプ切替時の表示制御（キャラ名一覧では「並び順：シナリオ順/人数順」を使用不可にする）
+            function applySearchTypeUI() {
+                const isList = document.querySelector('input[name="search_type"]:checked').value === 'characterList';
+                // キャラ名一覧のときは背景色を変え、登場回数の条件を表示
+                document.getElementById('search-container').classList.toggle('list-mode', isList);
+                document.getElementById('appearance-count-group').classList.toggle('hidden', !isList);
+                // キャラ名一覧では「並び順（シナリオ順/人数順）」「1ページ表示数」を使用不可にする
+                ['sort-scenario', 'sort-character-count', 'page-size-10', 'page-size-20', 'page-size-50'].forEach(id => {
+                    document.getElementById(id).disabled = isList;
+                    const label = document.querySelector(`label[for="${id}"]`);
+                    if (label) label.classList.toggle('opacity-40', isList);
+                });
+                if (isList) {
+                    // 並び順は人数順に固定（元の選択は保存して復元）
+                    if (window.savedSortMode == null) {
+                        window.savedSortMode = document.querySelector('input[name="sort_mode"]:checked')?.value || 'scenario';
+                    }
+                    document.getElementById('sort-character-count').checked = true;
+                } else if (window.savedSortMode != null) {
+                    const modeRadio = document.querySelector(`input[name="sort_mode"][value="${window.savedSortMode}"]`);
+                    if (modeRadio) modeRadio.checked = true;
+                    window.savedSortMode = null;
+                }
+                const descRadio = document.getElementById('sort-desc');
+                const ascRadio = document.getElementById('sort-asc');
+                if (isList) {
+                    // 一覧は登場数の多い順が基本なので、一覧に切り替えた直後だけ降順にする（元の選択は保存）。
+                    // 履歴からの復元時など、すでに一覧状態の場合は選択をそのまま維持する
+                    if (window.savedSortOrder == null) {
+                        window.savedSortOrder = ascRadio.checked ? 'asc' : 'desc';
+                        descRadio.checked = true;
+                    }
+                } else if (window.savedSortOrder != null) {
+                    document.getElementById('sort-' + window.savedSortOrder).checked = true;
+                    window.savedSortOrder = null;
+                }
+            }
+            window.applySearchTypeUI = applySearchTypeUI;
+            document.getElementsByName('search_type').forEach(r => r.addEventListener('change', applySearchTypeUI));
+
+            // キャラ名一覧を出力（検索タイプ「キャラ名一覧」で検索ボタンを押したとき）
+            function runCharacterList(sortOrder) {
+                const splitWords = str => str.split(/[,、\s]+/).filter(w => w.length > 0);
+                const options = {
+                    // キャラ名は絞り込みに使わない（一覧に載せる名前の選別にだけ使う）
+                    characterNames: [],
+                    notCharacterNames: splitWords(notCharacterNameInput.value.trim()),
+                    noteSearchString: noteKeywordsInput.value.trim(),
+                    questSearchString: questKeywordsInput.value.trim(),
+                    questNameSearchString: document.getElementById('quest-name-input').value.trim(),
+                    notQuestNameSearchString: notQuestNameInput.value.trim(),
+                    questSearchMode: document.querySelector('input[name="quest_search_mode"]:checked')?.value || 'AND',
+                    notQuestSearchMode: document.querySelector('input[name="not_quest_search_mode"]:checked')?.value || 'NOT_OR',
+                    includeBattleAffiliation: document.getElementById('include-battle-affiliation-checkbox')?.checked === true,
+                    lastSearchMode: 'AND',
+                    lastNotSearchMode: document.querySelector('input[name="not_character_search_mode"]:checked')?.value || 'NOT_OR',
+                    lastSelectedCategoryCodes: Array.from(categoryCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value),
+                    lastSelectedBuCodes: Array.from(buCheckboxesContainer.querySelectorAll('input:checked')).map(input => input.value)
+                };
+                let matched = filterScenarios(window.scenarios, options);
+                if (noteExistsOnlyCheckbox.checked) {
+                    matched = matched.filter(s => s.note && s.note.trim().length > 0);
+                }
+                if (questExistsOnlyCheckbox.checked) {
+                    matched = matched.filter(s => s.quest && s.quest.trim().length > 0);
+                }
+                // 入力されたキャラ名（部分一致）に該当する名前だけを一覧に出す。未入力なら全キャラ
+                const nameQueries = window.exactCharacterName
+                    ? [window.exactCharacterName]
+                    : splitWords(characterInput.value.trim());
+                let characterList = countCharacterAppearances(matched)
+                    .filter(c => nameQueries.length === 0 || nameQueries.some(q => c.name.includes(q)));
+                // 登場回数（From～To）で絞り込み。未入力の側は制限なし、From > To の場合は入れ替える
+                let countFrom = parseInt(document.getElementById('appearance-from').value, 10);
+                let countTo = parseInt(document.getElementById('appearance-to').value, 10);
+                if (!isNaN(countFrom) && !isNaN(countTo) && countFrom > countTo) {
+                    [countFrom, countTo] = [countTo, countFrom];
+                }
+                characterList = characterList.filter(c =>
+                    (isNaN(countFrom) || c.count >= countFrom) && (isNaN(countTo) || c.count <= countTo));
+                // 昇順／降順は登場数に適用
+                if (sortOrder === 'asc') {
+                    characterList.sort((a, b) => a.count - b.count || a.name.localeCompare(b.name, 'ja'));
+                }
+                renderCharacterList(characterList, matched.length);
+                pushStateAndShow('character-list', { characterList, scenarioCount: matched.length });
+                resultsContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
+            }
+
+            // キャラ名をクリック → 検索条件にセットして検索実行
+            resultsOutput.addEventListener('click', function (event) {
+                const btn = event.target.closest('[data-character-name]');
+                if (!btn) return;
+                const name = btn.dataset.characterName;
+                // キャラ名・クエスト名・他検索条件をクリアして、選択したキャラ名のみセット
+                // （実装時期・シナリオ分類・表示設定はそのまま）
+                document.querySelector('input[name="search_type"][value="scenario"]').checked = true;
+                applySearchTypeUI();
+                // 名前クリック時の検索は並び順をシナリオ順にする
+                document.getElementById('sort-scenario').checked = true;
+                characterInput.value = name;
+                window.exactCharacterName = name;
+                document.getElementById('quest-name-input').value = '';
+                document.getElementById('appearance-from').value = '';
+                document.getElementById('appearance-to').value = '';
+                document.getElementById('include-battle-affiliation-checkbox').checked = false;
+                notCharacterNameInput.value = '';
+                notQuestNameInput.value = '';
+                noteKeywordsInput.value = '';
+                questKeywordsInput.value = '';
+                noteExistsOnlyCheckbox.checked = false;
+                questExistsOnlyCheckbox.checked = false;
+                form.requestSubmit();
+                resultsContainer.scrollIntoView({ behavior: 'auto', block: 'start' });
             });
 
             // ページング
