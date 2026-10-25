@@ -10,6 +10,7 @@ function filterScenarios(scenarios, options) {
         questSearchMode,
         notQuestSearchMode,
         includeBattleAffiliation = false,
+        exactCharacterMatch = false,
         lastSearchMode,
         lastNotSearchMode,
         lastSelectedCategoryCodes,
@@ -19,10 +20,12 @@ function filterScenarios(scenarios, options) {
     return scenarios.filter(scenario => {
         let isCharacterMatch = true;
         if (characterNames.length > 0) {
+            // exactCharacterMatch: キャラ名一覧からの検索用（完全一致）。通常は部分一致
+            const matchName = (char, query) => exactCharacterMatch ? char === query : char.includes(query);
             if (lastSearchMode === 'OR') {
-                isCharacterMatch = scenario.characters && scenario.characters.some(char => characterNames.some(query => char.includes(query)));
+                isCharacterMatch = scenario.characters && scenario.characters.some(char => characterNames.some(query => matchName(char, query)));
             } else {
-                isCharacterMatch = scenario.characters && characterNames.every(query => scenario.characters.some(char => char.includes(query)));
+                isCharacterMatch = scenario.characters && characterNames.every(query => scenario.characters.some(char => matchName(char, query)));
             }
         }
 
@@ -79,4 +82,18 @@ function filterScenarios(scenarios, options) {
 
         return isCharacterMatch && isNotCharacterMatch && isNoteMatch && isQuestMatch && isCategoryMatch && isBuMatch && isQuestNameMatch && isNotQuestNameMatch;
     });
+}
+
+// キャラ名ごとの登場シナリオ数を集計（1シナリオにつき1回カウント）
+// 戻り値: [{ name, count }] を登場数の降順（同数は名前順）で返す
+function countCharacterAppearances(scenarios) {
+    const counts = new Map();
+    scenarios.forEach(scenario => {
+        if (!scenario.characters) return;
+        new Set(scenario.characters).forEach(name => {
+            counts.set(name, (counts.get(name) || 0) + 1);
+        });
+    });
+    return Array.from(counts, ([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ja'));
 }
